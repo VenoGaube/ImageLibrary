@@ -1,5 +1,6 @@
 tensorflow==1.7
 scipy==1.1.0
+setuptools
 scikit-learn
 opencv-python
 h5py
@@ -12,11 +13,7 @@ align
 pandas
 nltk
 gensim
-numpy==1.16.1
-cv2
-os
 pathlib
-secrets
-shutil
-tkinter
+pyOpenSSL
 exifread
+progressbar

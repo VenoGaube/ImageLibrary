@@ -36,19 +36,17 @@ def path_finder(path):
                 path_finder(element)
         except WindowsError:
             pass
+    # print(path_train_raw, path_train_aligned, path_test_raw, path_test_aligned, path_model, path_classifier_pickle)
 
 
-path_train_raw = ""                                               # "\\facenet\\data\\images\\train_raw\\"
-path_train_aligned = ""                                           # "\\facenet\\data\\images\\train_aligned\\"
+path_train_raw = ""  # "\\facenet\\data\\images\\train_raw\\"
+path_train_aligned = ""  # "\\facenet\\data\\images\\train_aligned\\"
 
-path_test_raw = ""                                                # "\\facenet\\data\\images\\test_raw\\"
-path_test_aligned = ""                                            # "\\facenet\\data\\images\\test_aligned\\"
+path_test_raw = ""  # "\\facenet\\data\\images\\test_raw\\"
+path_test_aligned = ""  # "\\facenet\\data\\images\\test_aligned\\"
 
-path_model = ""                                                   # "\\facenet\\models\\20180402-114759.pb"
-path_classifier_pickle = ""                                       # "\\facenet\\models\\my_classifier.pkl"
-
-
-path_finder(pathlib.PurePath(os.getcwd()))
+path_model = ""  # "\\facenet\\models\\20180402-114759.pb"
+path_classifier_pickle = ""  # "\\facenet\\models\\my_classifier.pkl"
 
 src = ""
 all_images = 0
@@ -83,7 +81,6 @@ class ClassifyArguments:
 
 
 def call_commands():
-
     # Train Command
     print("Loading Train Command")
     arguments_train_aligned = AlignArguments(path_train_raw, path_train_aligned)
@@ -152,6 +149,7 @@ def person_name():
 
 
 def check_number_of_images(path):
+    print("path = " + path)
     num_of_folders = 0
 
     for folder in Path(path).iterdir():
@@ -202,8 +200,10 @@ def automatic():
     call_commands()
 
 
+path_finder(pathlib.PurePath(os.getcwd()))
 root = Tk()
-check_number_of_images(str(path_train_raw))
+print(path_train_raw, path_train_aligned, path_test_raw, path_test_aligned, path_model, path_classifier_pickle)
+# check_number_of_images(str(path_train_raw))
 root.destroy()
 
 vse_slike = findImages.get_images()
