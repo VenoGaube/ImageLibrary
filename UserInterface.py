@@ -61,7 +61,7 @@ class AlignArguments:
         self.margin = 32
         self.random_order = True
         self.detect_multiple_faces = False
-        self.gpu_memory_fraction = 0.25
+        self.gpu_memory_fraction = 0.75
 
 
 class ClassifyArguments:

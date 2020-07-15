@@ -85,5 +85,5 @@ def get_images():
             print(folder)
             search_directory(folder, array)
             print('\rLoaded Images From Above Folder.')
-    print("\rFound all images.")
+    print("\rFound %d" % len(array) + " images.")
     return array
