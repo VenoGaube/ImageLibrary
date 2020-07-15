@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a846df05-984d-4089-b880-b6ee7598a436" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/UserInterface.py" beforeDir="false" afterPath="$PROJECT_DIR$/UserInterface.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/facenet/src/align/align_dataset_mtcnn.py" beforeDir="false" afterPath="$PROJECT_DIR$/facenet/src/align/align_dataset_mtcnn.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,7 +50,7 @@
       <workItem from="1594634678932" duration="6747000" />
       <workItem from="1594719649217" duration="25655000" />
       <workItem from="1594811235415" duration="11936000" />
-      <workItem from="1594825386692" duration="57000" />
+      <workItem from="1594825386692" duration="531000" />
     </task>
     <servers />
   </component>
