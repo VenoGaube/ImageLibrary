@@ -202,13 +202,13 @@ def automatic():
 
 path_finder(pathlib.PurePath(os.getcwd()))
 root = Tk()
-print(path_train_raw, path_train_aligned, path_test_raw, path_test_aligned, path_model, path_classifier_pickle)
-# check_number_of_images(str(path_train_raw))
+# print(path_train_raw, path_train_aligned, path_test_raw, path_test_aligned, path_model, path_classifier_pickle)
+check_number_of_images(str(path_train_raw))
 root.destroy()
 
 vse_slike = findImages.get_images()
 loop = 0  # na vsak interval pogleda sliko, da ne gleda slik ene za drugo
-for img in vse_slike:
+while True:
     image = secrets.choice(vse_slike)
     if loop == 0:
         pot = Path(image['path'])
@@ -233,6 +233,3 @@ for img in vse_slike:
         mainloop()
         loop = interval
     loop -= 1
-
-root.destroy()
-cv2.destroyWindow("image")
