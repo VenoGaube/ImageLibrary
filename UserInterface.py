@@ -8,8 +8,8 @@ import pathlib
 import secrets
 
 # file imports
-from align import align_dataset_mtcnn
-import classifier
+from facenet.src.align import align_dataset_mtcnn
+import facenet.src.classifier as classifier
 import findImages
 
 
