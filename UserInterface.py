@@ -149,28 +149,35 @@ def person_name():
 
 
 def check_number_of_images(path):
-    print("path = " + path)
+    # print("path = " + path)
     num_of_folders = 0
 
     for folder in Path(path).iterdir():
         # print(folder.name)
+        if folder.name == "test.txt":
+            continue
         num_of_folders += 1
     if num_of_folders == 0:
         return
+    # print("num of folders:")
+    # print(num_of_folders)
     counter_array = [0] * num_of_folders
 
     counter = 0
     limit = 20
     j = 0
-
     i = 0
     for folder in Path(path).iterdir():
-        # print("folder = %s" % folder)
-        for _ in folder.iterdir():
+        if folder.name == "test.txt":
+            continue
+        for element in folder.iterdir():
+            if element.name == "test.txt":
+                continue
             # print("element = %s" % element)
             counter_array[i] += 1
         i += 1
-
+    # print("counter array:")
+    # print(counter_array)
     for element in counter_array:
         # spremeni limit gori na tolko kolko naj bo training slik
         if counter_array[j] >= limit:

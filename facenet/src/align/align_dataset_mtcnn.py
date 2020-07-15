@@ -31,22 +31,22 @@ import os
 import argparse
 import tensorflow as tf
 import numpy as np
-import facenet.src.facenet as facenet
-import facenet.src.align.detect_face
+import facenet.src.facenet as fn
+import facenet.src.align.detect_face as align
 import random
 import progressbar
 from time import sleep
 
 
 def main(args):
-    sleep(random.random()) # Zakaj je to tu?
+    sleep(random.random())  # Zakaj je to tu?
     output_dir = os.path.expanduser(args.output_dir)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     # Store some git revision info in a text file in the log directory
     src_path, _ = os.path.split(os.path.realpath(__file__))
-    facenet.store_revision_info(src_path, output_dir, ' '.join(sys.argv))
-    dataset = facenet.get_dataset(args.input_dir)
+    fn.store_revision_info(src_path, output_dir, ' '.join(sys.argv))
+    dataset = fn.get_dataset(args.input_dir)
 
     print('Creating networks and loading parameters')
 
@@ -54,7 +54,7 @@ def main(args):
         gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=args.gpu_memory_fraction)
         sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
         with sess.as_default():
-            pnet, rnet, onet = align.detect_face.create_mtcnn(sess, None)
+            pnet, rnet, onet = align.create_mtcnn(sess, None)
 
     minsize = 20  # minimum size of face
     threshold = [0.6, 0.7, 0.7]  # three steps's threshold
@@ -81,7 +81,8 @@ def main(args):
                     random.shuffle(cls.image_paths)
             j = 0
             for image_path in cls.image_paths:
-                bar = progressbar.ProgressBar(maxval=len(cls.image_paths), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+                bar = progressbar.ProgressBar(maxval=len(cls.image_paths),
+                                              widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
                 bar.start()
                 bar.update(j + 1)
                 # print('\rLoading: /', end="")
@@ -102,11 +103,11 @@ def main(args):
                             text_file.write('%s\n' % output_filename)
                             continue
                         if img.ndim == 2:
-                            img = facenet.to_rgb(img)
+                            img = fn.to_rgb(img)
                         img = img[:, :, 0:3]
 
-                        bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold,
-                                                                          factor)
+                        bounding_boxes, _ = align.detect_face(img, minsize, pnet, rnet, onet, threshold,
+                                                              factor)
                         nrof_faces = bounding_boxes.shape[0]
                         if nrof_faces > 0:
                             # print('\rLoading: \\', end="")
