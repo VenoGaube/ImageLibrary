@@ -193,7 +193,16 @@ def check_number_of_images(path):
         call_commands()
     else:
         # user dalje kategorizira stvari
-        print("\rPotrebujemo še več slik")
+        for folder in Path(path).iterdir():
+            # print(folder.name)
+            stevec = 0
+            if folder.name == "test.txt":
+                continue
+            for file in folder.iterdir():
+                stevec += 1
+            if stevec < 20:
+                razlika = 20 - stevec
+                print("Potrebujemo še %d" % razlika + " slik od osebe: %s." % folder.name)
 
 
 def not_person():
