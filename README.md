@@ -1,5 +1,7 @@
 # Pogon skripte  
   
+## Kot interpreter se uporablja Python 3.6.8, ker še je kompatibilen s kodo podano v facenet repozitoriju in modulih znotraj requirements.txt datoteke.  
+    
 1.  git clone https://github.com/VenoGaube/ImageLibrary.git  
 2.  cd ImageLibrary  
 3.  pip install -r requirements.txt  
