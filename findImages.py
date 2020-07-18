@@ -82,7 +82,7 @@ def get_images():
                 and folder.name != "desktop.ini" and folder.name != "Default User" and folder.name != "$Recycle.Bin":
             # Tu je idealno, da se dobi samo direktorij Users\Uporabnik, ne pa še vsi ostali neuporabni folderji
             # ("Searching " + str(folder) + " for all images.")
-            print(folder)
+            #print(folder)
             search_directory(folder, array)
             print('\rLoaded Images From Above Folder.')
     print("\rFound %d" % len(array) + " images.")
