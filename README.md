@@ -1,1 +1,1 @@
-#README.md z navodili se nahaja znotraj /docs datoteke.
+# README.md z navodili se nahaja znotraj /docs datoteke.
