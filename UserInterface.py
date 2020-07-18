@@ -233,9 +233,9 @@ while True:
 
         image = cv2.imread(str(image['path']))
         height, width, c = image.shape
-        size = height * 0.3, width * 0.3
+
         small = cv2.resize(image, (0, 0), fx=0.3, fy=0.3)
-        cv2.imshow("image", small)
+        cv2.imshow("Image", small)
 
         entry = Entry(root, width=50)
         entry.pack()

@@ -27,6 +27,8 @@
   <component name="ChangeListManager">
     <list default="true" id="a846df05-984d-4089-b880-b6ee7598a436" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserInterface.py" beforeDir="false" afterPath="$PROJECT_DIR$/UserInterface.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/facenet/data/images/test_raw/gallery/test.txt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/findImages.py" beforeDir="false" afterPath="$PROJECT_DIR$/findImages.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -104,7 +106,7 @@
       <workItem from="1594929308527" duration="681000" />
       <workItem from="1595063041753" duration="332000" />
       <workItem from="1595076297319" duration="1312000" />
-      <workItem from="1595083287481" duration="614000" />
+      <workItem from="1595083287481" duration="2311000" />
     </task>
     <servers />
   </component>

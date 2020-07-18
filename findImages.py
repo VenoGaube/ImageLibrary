@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from shutil import copy2
 
+import cv2
 import exifread
 import pathlib
 
@@ -44,22 +45,25 @@ def search_directory(rootdir, array):
             # če se file konča z .jpeg ali .jpg je kategoriziran kot slika
             if rootdir.name.endswith(".jpeg") or rootdir.name.endswith(".JPEG") or rootdir.name.endswith(".jpg")\
                     or rootdir.name.endswith(".JPG") or rootdir.name.endswith(".png") or rootdir.name.endswith(".PNG"):
-                # Pridobimo čas in datum iz meta podatkov
-                image_date = get_date(rootdir)
-                # Če smo dobili nek datum in čas potem gremo v if, drugače to sliko popolnoma preskočimo
-                if image_date is not None:
-                    # Dodamo sliko in podatke v array
-                    gallery_dir = path_gallery
-                    copy2(rootdir, gallery_dir)
-                    picture = {'path': Path(rootdir), 'date': image_date}
-                    array.append(dict(picture))
-                    print('\rLoading: -', end="")
+                image = cv2.imread(str(rootdir))
+                height, width, c = image.shape
+                # preverimo če je slika dovolj velika
+                if  width > 1500 or height > 1500:
+                    # Pridobimo čas in datum iz meta podatkov
+                    image_date = get_date(rootdir)
+                    # Če smo dobili nek datum in čas potem gremo v if, drugače to sliko popolnoma preskočimo
+                    if image_date is not None:
+                        # Dodamo sliko in podatke v array
+                        gallery_dir = path_gallery
+                        copy2(rootdir, gallery_dir)
+                        picture = {'path': Path(rootdir), 'date': image_date}
+                        array.append(dict(picture))
+                        print('\rLoading: -', end="")
 
         else:
             for file in rootdir.iterdir():
                 # Vse datoteke ki jih nočemo gledat
-                if file.name.startswith(
-                        '.') or file.name == "AppData" or file.name == "desktop.ini" or file.name == "facenet":
+                if file.name.startswith('.') or file.name == "AppData" or file.name == "desktop.ini" or file.name == "facenet":
                     continue
 
                 # Rekurzivno gremo čez vse znotraj folderja
@@ -80,7 +84,8 @@ def get_images():
     # Sprehodimo se po vseh folderjih znotraj root direktorija
     for folder in Path(root).iterdir():
         if folder.name != "Public" and folder.name != "Default" and folder.name != "All Users" \
-                and folder.name != "desktop.ini" and folder.name != "Default User" and folder.name != "$Recycle.Bin":
+                and folder.name != "desktop.ini" and folder.name != "Default User" and folder.name != "$Recycle.Bin"\
+                and folder.name != "Windows":
             # Tu je idealno, da se dobi samo direktorij Users\Uporabnik, ne pa še vsi ostali neuporabni folderji
             # ("Searching " + str(folder) + " for all images.")
             print(folder)
