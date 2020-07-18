@@ -1,1 +1,0 @@
-python Diploma\facenet\src\classifier.py TRAIN Diploma\facenet\data\images\train_aligned Diploma\facenet\models\20180402-114759.pb Diploma\facenet\models\my_classifier.pkl

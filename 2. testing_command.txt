@@ -1,1 +1,0 @@
-python Diploma\facenet\src\align\align_dataset_mtcnn.py Diploma\facenet\data\images\test_raw Diploma\facenet\data\images\test_aligned --image_size 160
