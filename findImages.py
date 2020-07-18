@@ -42,7 +42,8 @@ def search_directory(rootdir, array):
     try:
         if rootdir.is_file():
             # če se file konča z .jpeg ali .jpg je kategoriziran kot slika
-            if rootdir.name.endswith(".jpeg") or rootdir.name.endswith(".JPG"):
+            if rootdir.name.endswith(".jpeg") or rootdir.name.endswith(".JPEG") or rootdir.name.endswith(".jpg")\
+                    or rootdir.name.endswith(".JPG") or rootdir.name.endswith(".png") or rootdir.name.endswith(".PNG"):
                 # Pridobimo čas in datum iz meta podatkov
                 image_date = get_date(rootdir)
                 # Če smo dobili nek datum in čas potem gremo v if, drugače to sliko popolnoma preskočimo
@@ -82,7 +83,7 @@ def get_images():
                 and folder.name != "desktop.ini" and folder.name != "Default User" and folder.name != "$Recycle.Bin":
             # Tu je idealno, da se dobi samo direktorij Users\Uporabnik, ne pa še vsi ostali neuporabni folderji
             # ("Searching " + str(folder) + " for all images.")
-            #print(folder)
+            print(folder)
             search_directory(folder, array)
             print('\rLoaded Images From Above Folder.')
     print("\rFound %d" % len(array) + " images.")
