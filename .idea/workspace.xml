@@ -26,20 +26,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a846df05-984d-4089-b880-b6ee7598a436" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/docs/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/facenet/1. korak.PNG" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/facenet/2. korak.PNG" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/facenet/3. korak.PNG" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/facenet/4. korak.PNG" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/facenet/5. korak.PNG" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1. training_command.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/2. testing_command.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/3. train_classifier_command.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/4. match_images_command.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/facenet/models/my_classifier.pkl" beforeDir="false" afterPath="$PROJECT_DIR$/facenet/models/my_classifier.pkl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/file_rename.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -116,6 +104,7 @@
       <workItem from="1594929308527" duration="681000" />
       <workItem from="1595063041753" duration="332000" />
       <workItem from="1595076297319" duration="1312000" />
+      <workItem from="1595083287481" duration="92000" />
     </task>
     <servers />
   </component>

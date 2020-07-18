@@ -11,7 +11,7 @@
   
 1. Program pregleda vse možne folderje na računalniku (ampak samo na enem drive-u za zdaj) in shrani slike v array.  
 
-    ![1. Korak](https://github.com/VenoGaube/ImageLibrary/docs/facenet/1. korak.PNG)  
+    ![1. Korak](https://github.com/VenoGaube/ImageLibrary/blob/master/docs/facenet/1.%20korak.PNG)  
 
 2. Ko vse slike najde, jih vse shrani v mapo ImageLibrary/facenet/src/data/test_raw/gallery.  
 3. Nato bo v while True loop-u program prikazoval naključne slike iz selekcije slik in jih glede na vnos v polju kategoriziral v mapo pod 
