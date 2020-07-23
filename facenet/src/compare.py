@@ -33,8 +33,10 @@ import sys
 import os
 import copy
 import argparse
-import facenet
-import align.detect_face
+import facenet.src.facenet as fn
+import facenet.src.align.detect_face
+import facenet.src.align as align
+
 
 def main(args):
 
@@ -44,7 +46,7 @@ def main(args):
         with tf.Session() as sess:
       
             # Load the model
-            facenet.load_model(args.model)
+            fn.load_model(args.model)
     
             # Get input and output tensors
             images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
@@ -107,7 +109,7 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
         bb[3] = np.minimum(det[3]+margin/2, img_size[0])
         cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
         aligned = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
-        prewhitened = facenet.prewhiten(aligned)
+        prewhitened = fn.prewhiten(aligned)
         img_list.append(prewhitened)
     images = np.stack(img_list)
     return images

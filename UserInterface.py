@@ -1,6 +1,7 @@
 from tkinter import *
 from pathlib import Path
 from shutil import copy2, SameFileError
+from PIL import Image
 
 import cv2
 import os
@@ -82,12 +83,14 @@ class ClassifyArguments:
 
 def call_commands():
     # Train Command
+    findImages.resize_images(str(path_train_raw))
     print("Loading Train Command")
     arguments_train_aligned = AlignArguments(path_train_raw, path_train_aligned)
     align_dataset_mtcnn.main(arguments_train_aligned)
     # print("konec 1. command")
 
     # Test Command
+    findImages.resize_images(str(path_test_raw))
     print("Loading Test Command")
     arguments_train_aligned = AlignArguments(path_test_raw, path_test_aligned)
     align_dataset_mtcnn.main(arguments_train_aligned)
@@ -186,7 +189,7 @@ def check_number_of_images(path):
 
     if counter == len(counter_array):
         # končaj z UI displayem in naredi vse še automatsko
-        print("Dovolj slik ste izbrali, hvala. Vrnite se čez 10-15 minut.")
+        print("Dovolj slik ste izbrali, hvala. Vrnite se čez 1-2 minuti.")
         # tu je treba pol klicat tiste štiri commande za align in train in classify
         root.destroy()
         cv2.destroyWindow("image")

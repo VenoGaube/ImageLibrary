@@ -1,11 +1,12 @@
 import os
 from pathlib import Path
 from shutil import copy2
+from PIL import Image
 
 import cv2
 import exifread
 import pathlib
-
+import progressbar
 
 def path_finder(path):
     global path_gallery
@@ -23,7 +24,7 @@ def path_finder(path):
 
 
 path_gallery = ""  # "\\facenet\\data\\images\\test_raw\\gallery"
-
+resize = 250, 250
 path_finder(pathlib.PurePath(os.getcwd()))
 
 
@@ -62,6 +63,7 @@ def search_directory(rootdir, array):
 
         else:
             for file in rootdir.iterdir():
+                print('\rLoading: -', end="")
                 # Vse datoteke ki jih nočemo gledat
                 if file.name.startswith('.') or file.name == "AppData" or file.name == "desktop.ini" or file.name == "facenet":
                     continue
@@ -91,5 +93,24 @@ def get_images():
             print(folder)
             search_directory(folder, array)
             print('\rLoaded Images From Above Folder.')
+
     print("\rFound %d" % len(array) + " images.")
+    resize_images(path_gallery)
     return array
+
+
+def resize_images(path):
+    print('\rResizing found images.')
+    for slika in Path(path).iterdir():
+        if slika.is_dir():
+            resize_images(slika)
+            continue
+        if slika.name.endswith(".txt"):
+            continue
+        resized = Image.open(slika)
+        print('\rLoading: /', end="")
+        resized_img = resized.resize(resize, Image.ANTIALIAS)
+        print('\rLoading: -', end="")
+        resized_img.save(slika)
+        print('\rLoading: \\', end="")
+
