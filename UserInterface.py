@@ -229,26 +229,23 @@ vse_slike = findImages.get_images()
 loop = 0  # na vsak interval pogleda sliko, da ne gleda slik ene za drugo
 while True:
     image = secrets.choice(vse_slike)
-    if loop == 0:
-        pot = Path(image['path'])
-        src = image['path']
-        root = Tk()
+    pot = Path(image['path'])
+    src = image['path']
+    root = Tk()
 
-        image = cv2.imread(str(image['path']))
-        height, width, c = image.shape
+    image = cv2.imread(str(image['path']))
+    height, width, c = image.shape
 
-        small = cv2.resize(image, (0, 0), fx=0.3, fy=0.3)
-        cv2.imshow("Image", small)
+    small = cv2.resize(image, (0, 0), fx=0.3, fy=0.3)
+    cv2.imshow("Image", small)
 
-        entry = Entry(root, width=50)
-        entry.pack()
-        entry.focus_set()
-        confirm = Button(root, text="Confirm", width=10, command=person_name)
-        pass_img = Button(root, text="Pass", width=10, command=not_person)
-        dovolj_mam = Button(root, text="Automatic", width=10, command=automatic)
-        confirm.pack()
-        pass_img.pack()
-        dovolj_mam.pack()
-        mainloop()
-        loop = interval
-    loop -= 1
+    entry = Entry(root, width=50)
+    entry.pack()
+    entry.focus_set()
+    confirm = Button(root, text="Confirm", width=10, command=person_name)
+    pass_img = Button(root, text="Pass", width=10, command=not_person)
+    dovolj_mam = Button(root, text="Automatic", width=10, command=automatic)
+    confirm.pack()
+    pass_img.pack()
+    dovolj_mam.pack()
+    mainloop()

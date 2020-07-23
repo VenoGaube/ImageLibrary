@@ -45,7 +45,7 @@ def search_directory(rootdir, array):
         if rootdir.is_file():
             # če se file konča z .jpeg ali .jpg je kategoriziran kot slika
             if rootdir.name.endswith(".jpeg") or rootdir.name.endswith(".JPEG") or rootdir.name.endswith(".jpg")\
-                    or rootdir.name.endswith(".JPG") or rootdir.name.endswith(".png") or rootdir.name.endswith(".PNG"):
+                    or rootdir.name.endswith(".JPG"): # or rootdir.name.endswith(".png") or rootdir.name.endswith(".PNG"):
                 image = cv2.imread(str(rootdir))
                 height, width, c = image.shape
                 # preverimo če je slika dovolj velika
