@@ -7,6 +7,8 @@ led / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+__pycache__
+.idea
 
 # C extensions
 *.so
