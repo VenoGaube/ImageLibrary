@@ -83,13 +83,13 @@ def get_images():
     root = tk.Tk()
     path = askdirectory(title='Select Folder')
     root.withdraw()
-    root = path
+    pot = path
 
     # Tukaj bodo vse slike in njihovi podatki
     array = []
 
     # Sprehodimo se po vseh folderjih znotraj root direktorija
-    for folder in Path(root).iterdir():
+    for folder in Path(pot).iterdir():
         if folder.name != "Public" and folder.name != "Default" and folder.name != "All Users" \
                 and folder.name != "desktop.ini" and folder.name != "Default User" and folder.name != "$Recycle.Bin"\
                 and folder.name != "Windows":
@@ -101,6 +101,7 @@ def get_images():
 
     print("\rFound %d" % len(array) + " images.")
     resize_images(path_gallery)
+    root.destroy()
     return array
 
 
