@@ -82,7 +82,7 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
 
     minsize = 20 # minimum size of face
     threshold = [ 0.6, 0.7, 0.7 ]  # three steps's threshold
-    factor = 0.709 # scale factor
+    factor = 1 # scale factor
     
     print('Creating networks and loading parameters')
     with tf.Graph().as_default():
@@ -101,18 +101,20 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
           image_paths.remove(image)
           print("can't detect face, remove ", image)
           continue
-        det = np.squeeze(bounding_boxes[0,0:4])
-        bb = np.zeros(4, dtype=np.int32)
-        bb[0] = np.maximum(det[0]-margin/2, 0)
-        bb[1] = np.maximum(det[1]-margin/2, 0)
-        bb[2] = np.minimum(det[2]+margin/2, img_size[1])
-        bb[3] = np.minimum(det[3]+margin/2, img_size[0])
-        cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
-        aligned = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
-        prewhitened = fn.prewhiten(aligned)
-        img_list.append(prewhitened)
+        for i in range(bounding_boxes):
+            det = np.squeeze(bounding_boxes[i,0:4])
+            bb = np.zeros(4, dtype=np.int32)
+            bb[0] = np.maximum(det[0]-margin/2, 0)
+            bb[1] = np.maximum(det[1]-margin/2, 0)
+            bb[2] = np.minimum(det[2]+margin/2, img_size[1])
+            bb[3] = np.minimum(det[3]+margin/2, img_size[0])
+            cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
+            aligned = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
+            prewhitened = fn.prewhiten(aligned)
+            img_list.append(prewhitened)
     images = np.stack(img_list)
     return images
+
 
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
@@ -127,6 +129,7 @@ def parse_arguments(argv):
     parser.add_argument('--gpu_memory_fraction', type=float,
         help='Upper bound on the amount of GPU memory that will be used by the process.', default=1.0)
     return parser.parse_args(argv)
+
 
 if __name__ == '__main__':
     main(parse_arguments(sys.argv[1:]))

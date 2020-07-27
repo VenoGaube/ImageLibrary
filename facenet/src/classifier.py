@@ -133,8 +133,6 @@ def main(args):
                 for i in range(len(best_class_indices)):
                     # print('%4d %s %s: %.3f' % (i, paths[i], class_names[best_class_indices[i]], best_class_probabilities[i]))
                     if float(best_class_probabilities[i]) > 0.800:
-
-
                         new_dir = Path(results_path) / Path(class_names[best_class_indices[i]])
                         pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
                         copy2(str(paths[i]), new_dir)

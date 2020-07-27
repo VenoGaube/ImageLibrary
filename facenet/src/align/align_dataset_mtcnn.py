@@ -39,7 +39,7 @@ from time import sleep
 
 
 def main(args):
-    sleep(random.random())  # Zakaj je to tu?
+    # sleep(random.random())  # Zakaj je to tu?
     output_dir = os.path.expanduser(args.output_dir)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -72,19 +72,16 @@ def main(args):
         if args.random_order:
             random.shuffle(dataset)
 
-        j = 0
         for cls in dataset:
             output_class_dir = os.path.join(output_dir, cls.name)
             if not os.path.exists(output_class_dir):
                 os.makedirs(output_class_dir)
                 if args.random_order:
                     random.shuffle(cls.image_paths)
+            bar = progressbar.ProgressBar(maxval=len(cls.image_paths),widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+            bar.start()
             j = 0
             for image_path in cls.image_paths:
-                bar = progressbar.ProgressBar(maxval=len(cls.image_paths),
-                                              widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
-                bar.start()
-                bar.update(j + 1)
                 # print('\rLoading: /', end="")
                 nrof_images_total += 1
                 filename = os.path.splitext(os.path.split(image_path)[1])[0]

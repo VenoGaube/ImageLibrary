@@ -2,11 +2,14 @@ import os
 from pathlib import Path
 from shutil import copy2
 from PIL import Image
+from tkinter.filedialog import askdirectory
 
+import tkinter as tk
 import cv2
 import exifread
 import pathlib
 import progressbar
+
 
 def path_finder(path):
     global path_gallery
@@ -76,9 +79,11 @@ def search_directory(rootdir, array):
 
 
 def get_images():
-    # Določitev root directory-ja
-    path = pathlib.PurePath(os.getcwd())
-    root = path.parts[0]
+    # User določi root directory
+    root = tk.Tk()
+    path = askdirectory(title='Select Folder')
+    root.withdraw()
+    root = path
 
     # Tukaj bodo vse slike in njihovi podatki
     array = []

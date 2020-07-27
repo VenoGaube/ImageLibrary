@@ -61,8 +61,8 @@ class AlignArguments:
         self.image_size = 160
         self.margin = 32
         self.random_order = True
-        self.detect_multiple_faces = False
-        self.gpu_memory_fraction = 0.75
+        self.detect_multiple_faces = True
+        self.gpu_memory_fraction = 0.90
 
 
 class ClassifyArguments:
@@ -76,12 +76,13 @@ class ClassifyArguments:
         self.seed = 666
         self.min_nrof_images_per_class = 1
         self.nrof_train_images_per_class = 20
-        self.batch_size = 90
+        self.batch_size = 45
         self.image_size = 160
         self.test_data_dir = str(path_aligned_folder)
 
 
 def call_commands():
+    """
     # Train Command
     findImages.resize_images(str(path_train_raw))
     print("Loading Train Command")
@@ -107,7 +108,7 @@ def call_commands():
     arguments_classifier = ClassifyArguments(path_test_aligned, 'CLASSIFY')
     classifier.main(arguments_classifier)
     # print("konec 4. command")
-
+    """
     print("Waiting on results...")
     path_result = os.getcwd()
     path_origin = path_test_raw
@@ -117,19 +118,28 @@ def call_commands():
     for folder in Path(path_result).iterdir():
         if folder.name == "results":
             path_result = path_result / folder
-    print(path_result, path_origin)
+    # print(path_result, path_origin)
     for folder in Path(path_result).iterdir():
         for pic in folder.iterdir():
+            original_name, ending = os.path.splitext(pic)
+            name = original_name
+            name = str(name[:-2])
+            pic = name + ending
             for img in Path(path_origin).iterdir():
                 print('\rLoading: /', end="")
-                if pic.stem == img.stem:
+                if Path(pic).stem == img.stem:
+                    replace, end = os.path.splitext(pic)
+                    replace = original_name + end
+                    pic = replace
                     os.remove(pic)
                     print('\rLoading: -', end="")
                     copy2(path_origin / img, path_result / folder)
                     break
                 print('\rLoading: \\', end="")
+    print("\rResults are in.")
+    print()
+    print("Collecting group images and creating folders")
 
-    print("\nDone.")
     exit(0)
 
 
@@ -192,7 +202,7 @@ def check_number_of_images(path):
         print("Dovolj slik ste izbrali, hvala. Vrnite se čez 1-2 minuti.")
         # tu je treba pol klicat tiste štiri commande za align in train in classify
         root.destroy()
-        cv2.destroyWindow("image")
+        cv2.destroyWindow("Image")
         call_commands()
     else:
         # user dalje kategorizira stvari
@@ -215,8 +225,10 @@ def not_person():
 
 def automatic():
     root.destroy()
-    cv2.destroyWindow("image")
+    cv2.destroyWindow("Image")
     call_commands()
+    root.destroy()
+    cv2.destroyWindow("Image")
 
 
 path_finder(pathlib.PurePath(os.getcwd()))
