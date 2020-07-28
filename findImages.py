@@ -100,7 +100,7 @@ def get_images():
             print('\rLoaded Images From Above Folder.')
 
     print("\rFound %d" % len(array) + " images.")
-    resize_images(path_gallery)
+    #resize_images(path_gallery)
     root.destroy()
     return array
 

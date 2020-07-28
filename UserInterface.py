@@ -7,6 +7,8 @@ import cv2
 import os
 import pathlib
 import secrets
+import tkinter as tk
+from tkinter import simpledialog
 
 # file imports
 from facenet.src.align import align_dataset_mtcnn
@@ -81,6 +83,80 @@ class ClassifyArguments:
         self.test_data_dir = str(path_aligned_folder)
 
 
+class MultipleFacesFrame:
+    def __init__(self, master):
+        self.master = master
+        self.master.geometry("300x100")
+        self.frame = tk.Frame(self.master)
+        self.quit = tk.Button(self.frame, text=f"Quit this window n.", command=self.close_window)
+        self.quit.pack()
+        self.frame.pack()
+
+    def close_window(self):
+        self.master.destroy()
+
+
+class OpenWindow:
+    def __init__(self, master):
+        self.master = master
+        self.show_widgets(master)
+
+    def show_widgets(self, master):
+        self.frame = tk.Frame(self.master)
+        self.master.title("Input text")
+        self.entry = Entry(self.master, width=40)
+        self.entry.pack()
+        self.entry.focus_set()
+        user_input = tk.Button(root, text="Confirm", width=10, command=self.person_name)
+        pass_button = tk.Button(root, text="Pass", width=10, command=self.close_window)
+        automatic = tk.Button(root, text="Automatic", width=10, command=self.automatic)
+        self.create_window("Multiple faces", MultipleFacesFrame)
+        user_input.pack()
+        pass_button.pack()
+        automatic.pack()
+        self.frame.pack()
+
+
+    def create_window(self, text, _class):
+        # Button that creates a new window
+        tk.Button(self.frame, text=text, width=10, command=lambda: self.new_window(_class)).pack()
+
+    def create_button(self, text, function):
+        tk.Button(self.frame, text=text, width=10, command=lambda: function).pack()
+
+    def new_window(self, _class):
+        self.win = tk.Toplevel(self.master)
+        _class(self.win)
+
+    def close_window(self):
+        self.master.destroy()
+
+    def automatic(self):
+        self.master.destroy()
+        cv2.destroyWindow("Image")
+        call_commands()
+        self.master.destroy()
+        cv2.destroyWindow("Image")
+
+    def person_name(self):
+        print(self.entry.get())
+        if self.entry.get() != '':
+            dir_name = self.entry.get().upper()
+            new_dir = str(path_train_raw) / Path(dir_name)
+            # print("new_dir = " + new_dir)
+            main_dir = str(path_train_raw)
+
+            pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
+            try:
+                copy2(str(src), new_dir)
+            except SameFileError:
+                print("SameFileError")
+                pass
+            # Preverimo če je že dovolj slik v vsaki datoteki in tega ne rabimo več gledat pa lahko zaključimo.
+            check_number_of_images(self, main_dir)
+            self.master.destroy()
+
+
 def call_commands():
     """
     # Train Command
@@ -143,25 +219,7 @@ def call_commands():
     exit(0)
 
 
-def person_name():
-    if entry.get() != '':
-        dir_name = entry.get().upper()
-        new_dir = str(path_train_raw) / Path(dir_name)
-        # print("new_dir = " + new_dir)
-        main_dir = str(path_train_raw)
-
-        pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
-        try:
-            copy2(str(src), new_dir)
-        except SameFileError:
-            print("SameFileError")
-            pass
-        # Preverimo če je že dovolj slik v vsaki datoteki in tega ne rabimo več gledat pa lahko zaključimo.
-        check_number_of_images(main_dir)
-        root.destroy()
-
-
-def check_number_of_images(path):
+def check_number_of_images(self, path):
     # print("path = " + path)
     num_of_folders = 0
 
@@ -201,7 +259,7 @@ def check_number_of_images(path):
         # končaj z UI displayem in naredi vse še automatsko
         print("Dovolj slik ste izbrali, hvala. Vrnite se čez 1-2 minuti.")
         # tu je treba pol klicat tiste štiri commande za align in train in classify
-        root.destroy()
+        self.master.destroy()
         cv2.destroyWindow("Image")
         call_commands()
     else:
@@ -218,32 +276,17 @@ def check_number_of_images(path):
                 print("Potrebujemo še %d" % razlika + " slik od osebe: %s." % folder.name)
 
 
-def not_person():
-    print("Na sliki ni osebe.")
-    root.destroy()
-
-
-def automatic():
-    root.destroy()
-    cv2.destroyWindow("Image")
-    call_commands()
-    root.destroy()
-    cv2.destroyWindow("Image")
-
-
 path_finder(pathlib.PurePath(os.getcwd()))
-root = Tk()
+# root = Tk()
 # print(path_train_raw, path_train_aligned, path_test_raw, path_test_aligned, path_model, path_classifier_pickle)
-check_number_of_images(str(path_train_raw))
-root.destroy()
-
+# check_number_of_images(str(path_train_raw))
+# root.destroy()
 vse_slike = findImages.get_images()
 loop = 0  # na vsak interval pogleda sliko, da ne gleda slik ene za drugo
 while True:
     image = secrets.choice(vse_slike)
     pot = Path(image['path'])
     src = image['path']
-    root = Tk()
 
     image = cv2.imread(str(image['path']))
     height, width, c = image.shape
@@ -251,13 +294,6 @@ while True:
     small = cv2.resize(image, (0, 0), fx=0.3, fy=0.3)
     cv2.imshow("Image", small)
 
-    entry = Entry(root, width=50)
-    entry.pack()
-    entry.focus_set()
-    confirm = Button(root, text="Confirm", width=10, command=person_name)
-    pass_img = Button(root, text="Pass", width=10, command=not_person)
-    dovolj_mam = Button(root, text="Automatic", width=10, command=automatic)
-    confirm.pack()
-    pass_img.pack()
-    dovolj_mam.pack()
-    mainloop()
+    root = Tk()
+    app = OpenWindow(root)
+    root.mainloop()
