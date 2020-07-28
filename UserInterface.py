@@ -86,14 +86,36 @@ class ClassifyArguments:
 class MultipleFacesFrame:
     def __init__(self, master):
         self.master = master
-        self.master.geometry("300x100")
         self.frame = tk.Frame(self.master)
-        self.quit = tk.Button(self.frame, text=f"Quit this window n.", command=self.close_window)
+        self.input = Entry(self.master, width=40)
+        self.input.pack()
+        self.input.focus_set()
+        self.more_people = tk.Button(self.frame, text=f"Next person", command=self.person_name)
+        self.quit = tk.Button(self.frame, text=f"Done", command=self.close_window)
+        self.more_people.pack()
         self.quit.pack()
         self.frame.pack()
 
     def close_window(self):
         self.master.destroy()
+        OpenWindow.close_window(self.master)
+        cv2.destroyWindow("Image")
+
+    def person_name(self):
+        # print(self.input.get())
+        if self.input.get() != '':
+            dir_name = self.input.get().upper()
+            new_dir = str(path_train_raw) / Path(dir_name)
+            # print("new_dir = " + new_dir)
+            main_dir = str(path_train_raw)
+
+            pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
+            try:
+                copy2(str(src), new_dir)
+                print("Image added to %s" %self.input.get() + "' folder")
+            except SameFileError:
+                print("SameFileError")
+                pass
 
 
 class OpenWindow:
@@ -115,7 +137,6 @@ class OpenWindow:
         pass_button.pack()
         automatic.pack()
         self.frame.pack()
-
 
     def create_window(self, text, _class):
         # Button that creates a new window
