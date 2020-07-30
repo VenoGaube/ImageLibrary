@@ -1,19 +1,18 @@
 from tkinter import *
 from pathlib import Path
 from shutil import copy2, SameFileError
-from PIL import Image
 
 import cv2
 import os
 import pathlib
 import secrets
 import tkinter as tk
-from tkinter import simpledialog
+import numpy as np
 
 # file imports
+import findImages
 from facenet.src.align import align_dataset_mtcnn
 import facenet.src.classifier as classifier
-import findImages
 
 
 def path_finder(path):
@@ -53,7 +52,7 @@ path_classifier_pickle = ""  # "\\facenet\\models\\my_classifier.pkl"
 
 src = ""
 all_images = 0
-interval = 5  # base interval
+multiples = []
 
 
 class AlignArguments:
@@ -102,17 +101,21 @@ class MultipleFacesFrame:
         cv2.destroyWindow("Image")
 
     def person_name(self):
+        global multiples
         # print(self.input.get())
         if self.input.get() != '':
             dir_name = self.input.get().upper()
             new_dir = str(path_train_raw) / Path(dir_name)
             # print("new_dir = " + new_dir)
             main_dir = str(path_train_raw)
-
             pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
             try:
+                if file_check(multiples, Path(src).stem, dir_name):
+                    multiples.append(ImageObject(src, dir_name))
+                    ImageObject.append_to_folder(multiples[-1], dir_name)
                 copy2(str(src), new_dir)
-                print("Image added to %s" %self.input.get() + "' folder")
+                print("Image added to %s" % self.input.get() + "s' folder")
+
             except SameFileError:
                 print("SameFileError")
                 pass
@@ -160,7 +163,6 @@ class OpenWindow:
         cv2.destroyWindow("Image")
 
     def person_name(self):
-        print(self.entry.get())
         if self.entry.get() != '':
             dir_name = self.entry.get().upper()
             new_dir = str(path_train_raw) / Path(dir_name)
@@ -174,8 +176,120 @@ class OpenWindow:
                 print("SameFileError")
                 pass
             # Preverimo če je že dovolj slik v vsaki datoteki in tega ne rabimo več gledat pa lahko zaključimo.
-            check_number_of_images(self, main_dir)
+            self.check_number_of_images(main_dir)
             self.master.destroy()
+
+    def check_number_of_images(self, path):
+        # print("path = " + path)
+        num_of_folders = 0
+
+        for folder in Path(path).iterdir():
+            # print(folder.name)
+            if folder.name == "test.txt":
+                continue
+            num_of_folders += 1
+        if num_of_folders == 0:
+            return
+        # print("num of folders:")
+        # print(num_of_folders)
+        counter_array = [0] * num_of_folders
+
+        counter = 0
+        limit = 20
+        j = 0
+        i = 0
+        for folder in Path(path).iterdir():
+            if folder.name == "test.txt":
+                continue
+            for element in folder.iterdir():
+                if element.name == "test.txt":
+                    continue
+                # print("element = %s" % element)
+                counter_array[i] += 1
+            i += 1
+        # print("counter array:")
+        # print(counter_array)
+        for element in counter_array:
+            # spremeni limit gori na tolko kolko naj bo training slik
+            if counter_array[j] >= limit:
+                counter += 1
+                j += 1
+
+        if counter == len(counter_array):
+            # končaj z UI displayem in naredi vse še automatsko
+            print("Dovolj slik ste izbrali, hvala. Vrnite se čez 1-2 minuti.")
+            # tu je treba pol klicat tiste štiri commande za align in train in classify
+            self.master.destroy()
+            cv2.destroyWindow("Image")
+            call_commands()
+        else:
+            # user dalje kategorizira stvari
+            for folder in Path(path).iterdir():
+                # print(folder.name)
+                stevec = 0
+                if folder.name == "test.txt":
+                    continue
+                for file in folder.iterdir():
+                    stevec += 1
+                if stevec < 20:
+                    razlika = 20 - stevec
+                    print("Potrebujemo še %d" % razlika + " slik od osebe: %s." % folder.name)
+
+
+class ImageObject:
+    def __init__(self, path_to_image, folder_name):
+        self.path_to_image = Path(path_to_image)
+        self.folders = []
+
+    def append_to_folder(self, folder_name):
+        self.folders.append(folder_name)
+
+
+def folder_check(imageInstance, folder_name):
+    flag = 0
+    for i in range(len(imageInstance.folders)):
+        if imageInstance.folders[i] == folder_name:
+            flag += 1
+    if flag < len(imageInstance.folders):
+        ImageObject.append_to_folder(imageInstance, folder_name)
+
+
+def file_check(multiples, src_name, folder_name):
+    for i in range(len(multiples)):
+        if multiples[i].path_to_image.stem == src_name:
+            folder_check(multiples[i], folder_name)
+            return False
+    return True
+
+
+# TODO: Dobimo array vseh slik z večimi obrazi. Uredit je treba kreiranje folderja in samo izbrisanje duplicate folder
+# TODO: imen, če kdaj dobimo isto sliko za razpoznat.
+def group_images(results_path, multiples):
+    for i in range(len(multiples)):
+        multiples[i].folders.sort()
+        multiples[i].folders = remove_duplicates(multiples[i].folders)
+        create_folders(multiples[i], results_path)
+
+
+def create_folders(multi, results_path):
+    group_folder = ""
+    flag = True
+    for folder in multi.folders:
+        if flag:
+            group_folder = folder
+            flag = False
+        else:
+            group_folder = group_folder + "&" + folder
+    group_path = str(results_path) + "\\" + str(group_folder)
+    if os.path.isdir(group_path):
+        copy2(str(multi.path_to_image), str(group_path))
+    else:
+        os.mkdir(str(group_path))
+        copy2(str(multi.path_to_image), str(group_path))
+
+
+def remove_duplicates(folder_list):
+    return list(dict.fromkeys(folder_list))
 
 
 def call_commands():
@@ -209,6 +323,7 @@ def call_commands():
     print("Waiting on results...")
     path_result = os.getcwd()
     path_origin = path_test_raw
+
     for folder in Path(path_origin).iterdir():
         if folder.name == "gallery":
             path_origin = path_origin / folder
@@ -235,12 +350,13 @@ def call_commands():
                 print('\rLoading: \\', end="")
     print("\rResults are in.")
     print()
+    print(multiples)
     print("Collecting group images and creating folders")
-
+    group_images(path_result, multiples)
     exit(0)
 
 
-def check_number_of_images(self, path):
+def check_number_of_images(path):
     # print("path = " + path)
     num_of_folders = 0
 
@@ -280,7 +396,7 @@ def check_number_of_images(self, path):
         # končaj z UI displayem in naredi vse še automatsko
         print("Dovolj slik ste izbrali, hvala. Vrnite se čez 1-2 minuti.")
         # tu je treba pol klicat tiste štiri commande za align in train in classify
-        self.master.destroy()
+        root.destroy()
         cv2.destroyWindow("Image")
         call_commands()
     else:
@@ -298,10 +414,10 @@ def check_number_of_images(self, path):
 
 
 path_finder(pathlib.PurePath(os.getcwd()))
-# root = Tk()
+root = Tk()
 # print(path_train_raw, path_train_aligned, path_test_raw, path_test_aligned, path_model, path_classifier_pickle)
-# check_number_of_images(str(path_train_raw))
-# root.destroy()
+check_number_of_images(str(path_train_raw))
+root.destroy()
 vse_slike = findImages.get_images()
 loop = 0  # na vsak interval pogleda sliko, da ne gleda slik ene za drugo
 while True:
@@ -317,4 +433,5 @@ while True:
 
     root = Tk()
     app = OpenWindow(root)
+    print(multiples)
     root.mainloop()
