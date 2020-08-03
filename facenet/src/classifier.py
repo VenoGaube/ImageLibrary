@@ -25,9 +25,10 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from os.path import normpath, basename
 
 import pathlib
-
+import config
 import progressbar
 import tensorflow as tf
 import numpy as np
@@ -40,6 +41,28 @@ import pickle
 from sklearn.svm import SVC
 from shutil import copy2
 from pathlib import Path
+
+
+class ImageObject:
+    def __init__(self, path_to_image):
+        self.path_to_image = Path(path_to_image)
+        self.folders = []
+
+    def append_to_folder(self, folder_name):
+        self.folders.append(folder_name)
+
+
+def check_if_multi(image_path):
+    imageObjects = config.multiples
+    for i in range(len(imageObjects)):
+        original_name, ending = os.path.splitext(imageObjects[i].path_to_image)
+        name = original_name
+        if name[:-1] == '_':
+            name = str(name[:-2])
+        name = basename(normpath(name))
+        if name == Path(image_path).stem:
+            return imageObjects[i]
+    return None
 
 
 def main(args):
@@ -131,8 +154,25 @@ def main(args):
                     results_path = os.path.join(results_path, 'results')
                 print(results_path)
                 for i in range(len(best_class_indices)):
-                    # print('%4d %s %s: %.3f' % (i, paths[i], class_names[best_class_indices[i]], best_class_probabilities[i]))
-                    if float(best_class_probabilities[i]) > 0.800:
+                    # print('%4d %s %s: %.3f' % (i, paths[i], class_names[best_class_indices[i]],
+                    # best_class_probabilities[i])) Vsako sliko dodamo not v array in če se isti stem pojavi več kot
+                    # 1 krat, imamo multiple face sliko. Potem ta array obdelamo na koncu te funkcije pa dodamo vse
+                    # te multiple slike v array multiples, kot prej. In to je to.
+                    original_name, ending = os.path.splitext(paths[i])
+                    name = original_name
+                    name = str(name[:-2])
+                    path_img = name + ending
+                    imgObject = check_if_multi(Path(path_img))
+                    if imgObject is not None:
+                        config.beta += 1
+                        for cls in class_names:
+                            ImageObject.append_to_folder(imgObject, cls)
+                        config.final_multi.append(imgObject)
+                        new_dir = Path(results_path) / Path(class_names[best_class_indices[i]])
+                        pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
+                        copy2(str(paths[i]), new_dir)
+                    elif float(best_class_probabilities[i]) > 0.700:
+                        config.beta += 1
                         new_dir = Path(results_path) / Path(class_names[best_class_indices[i]])
                         pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
                         copy2(str(paths[i]), new_dir)

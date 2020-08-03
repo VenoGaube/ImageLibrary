@@ -106,7 +106,6 @@ def get_images():
 
 
 def resize_images(path):
-    print('\rResizing found images.')
     for slika in Path(path).iterdir():
         if slika.is_dir():
             resize_images(slika)

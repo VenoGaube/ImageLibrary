@@ -24,8 +24,9 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-
 from scipy import misc
+from pathlib import Path
+
 import sys
 import os
 import argparse
@@ -35,7 +36,13 @@ import facenet.src.facenet as fn
 import facenet.src.align.detect_face as align
 import random
 import progressbar
-from time import sleep
+import config
+
+
+class ImageObject:
+    def __init__(self, path_to_image):
+        self.path_to_image = Path(path_to_image)
+        self.folders = []
 
 
 def main(args):
@@ -82,13 +89,11 @@ def main(args):
             bar.start()
             j = 0
             for image_path in cls.image_paths:
-                # print('\rLoading: /', end="")
                 nrof_images_total += 1
                 filename = os.path.splitext(os.path.split(image_path)[1])[0]
                 output_filename = os.path.join(output_class_dir, filename + '.png')
                 # print(image_path)
                 if not os.path.exists(output_filename):
-                    # print('\rLoading: -', end="")
                     try:
                         img = misc.imread(image_path)
                     except (IOError, ValueError, IndexError) as e:
@@ -107,16 +112,16 @@ def main(args):
                                                               factor)
                         nrof_faces = bounding_boxes.shape[0]
                         if nrof_faces > 0:
-                            # print('\rLoading: \\', end="")
                             det = bounding_boxes[:, 0:4]
                             det_arr = []
                             img_size = np.asarray(img.shape)[0:2]
                             if nrof_faces > 1:
                                 if args.detect_multiple_faces:
+                                    config.multiples.append(ImageObject(Path(image_path)))
+                                    # print(config.multiples[-1].path_to_image)
                                     for i in range(nrof_faces):
                                         det_arr.append(np.squeeze(det[i]))
                                 else:
-                                    # print('\rLoading: -', end="")
                                     bounding_box_size = (det[:, 2] - det[:, 0]) * (det[:, 3] - det[:, 1])
                                     img_center = img_size / 2
                                     offsets = np.vstack([(det[:, 0] + det[:, 2]) / 2 - img_center[1],
@@ -126,11 +131,9 @@ def main(args):
                                         bounding_box_size - offset_dist_squared * 2.0)  # some extra weight on the centering
                                     det_arr.append(det[index, :])
                             else:
-                                # print('\rLoading: /', end="")
                                 det_arr.append(np.squeeze(det))
 
                             for i, det in enumerate(det_arr):
-                                # print('\rLoading: -', end="")
                                 det = np.squeeze(det)
                                 bb = np.zeros(4, dtype=np.int32)
                                 bb[0] = np.maximum(det[0] - args.margin / 2, 0)

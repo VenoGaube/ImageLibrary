@@ -1,6 +1,7 @@
 from tkinter import *
 from pathlib import Path
 from shutil import copy2, SameFileError
+from os.path import normpath, basename
 
 import cv2
 import os
@@ -11,8 +12,12 @@ import numpy as np
 
 # file imports
 import findImages
+import config
 from facenet.src.align import align_dataset_mtcnn
 import facenet.src.classifier as classifier
+
+
+# TODO: Poglej kako se dela ko je več obrazov na sliki in dodaj to še v dodajanje v te folderje za multi ljudi.
 
 
 def path_finder(path):
@@ -52,7 +57,6 @@ path_classifier_pickle = ""  # "\\facenet\\models\\my_classifier.pkl"
 
 src = ""
 all_images = 0
-multiples = []
 
 
 class AlignArguments:
@@ -101,21 +105,13 @@ class MultipleFacesFrame:
         cv2.destroyWindow("Image")
 
     def person_name(self):
-        global multiples
-        # print(self.input.get())
         if self.input.get() != '':
             dir_name = self.input.get().upper()
-            new_dir = str(path_train_raw) / Path(dir_name)
-            # print("new_dir = " + new_dir)
-            main_dir = str(path_train_raw)
-            pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
             try:
-                if file_check(multiples, Path(src).stem, dir_name):
-                    multiples.append(ImageObject(src, dir_name))
-                    ImageObject.append_to_folder(multiples[-1], dir_name)
-                copy2(str(src), new_dir)
-                print("Image added to %s" % self.input.get() + "s' folder")
-
+                if file_check(Path(src).stem, dir_name):
+                    config.multiples.append(ImageObject(src))
+                    ImageObject.append_to_folder(config.multiples[-1], dir_name)
+                    print("Saved %s" % dir_name + ".")
             except SameFileError:
                 print("SameFileError")
                 pass
@@ -237,7 +233,7 @@ class OpenWindow:
 
 
 class ImageObject:
-    def __init__(self, path_to_image, folder_name):
+    def __init__(self, path_to_image):
         self.path_to_image = Path(path_to_image)
         self.folders = []
 
@@ -254,21 +250,19 @@ def folder_check(imageInstance, folder_name):
         ImageObject.append_to_folder(imageInstance, folder_name)
 
 
-def file_check(multiples, src_name, folder_name):
-    for i in range(len(multiples)):
-        if multiples[i].path_to_image.stem == src_name:
-            folder_check(multiples[i], folder_name)
+def file_check(src_name, folder_name):
+    for i in range(len(config.final_multi)):
+        if config.final_multi[i].path_to_image.stem == src_name:
+            folder_check(config.final_multi[i], folder_name)
             return False
     return True
 
 
-# TODO: Dobimo array vseh slik z večimi obrazi. Uredit je treba kreiranje folderja in samo izbrisanje duplicate folder
-# TODO: imen, če kdaj dobimo isto sliko za razpoznat.
-def group_images(results_path, multiples):
-    for i in range(len(multiples)):
-        multiples[i].folders.sort()
-        multiples[i].folders = remove_duplicates(multiples[i].folders)
-        create_folders(multiples[i], results_path)
+def group_images(results_path):
+    for i in range(len(config.final_multi)):
+        config.final_multi[i].folders.sort()
+        config.final_multi[i].folders = remove_duplicates(config.final_multi[i].folders)
+        create_folders(config.final_multi[i], results_path)
 
 
 def create_folders(multi, results_path):
@@ -293,33 +287,35 @@ def remove_duplicates(folder_list):
 
 
 def call_commands():
-    """
+
     # Train Command
+    print('\rResizing found images.')
     findImages.resize_images(str(path_train_raw))
-    print("Loading Train Command")
+    print("\rLoading Train Command")
     arguments_train_aligned = AlignArguments(path_train_raw, path_train_aligned)
     align_dataset_mtcnn.main(arguments_train_aligned)
     # print("konec 1. command")
 
     # Test Command
+    print('\rResizing found images.')
     findImages.resize_images(str(path_test_raw))
-    print("Loading Test Command")
+    print("\rLoading Test Command")
     arguments_train_aligned = AlignArguments(path_test_raw, path_test_aligned)
     align_dataset_mtcnn.main(arguments_train_aligned)
     # print("konec 2. command")
 
     # Train Command
-    print("Loading Classifier TRAIN Command")
+    print("\rLoading Classifier TRAIN Command")
     arguments_classifier = ClassifyArguments(path_train_aligned, 'TRAIN')
     classifier.main(arguments_classifier)
     # print("konec 3. command")
 
     # Classify Command
-    print("Loading Classifier CLASSIFY Command")
+    print("\rLoading Classifier CLASSIFY Command")
     arguments_classifier = ClassifyArguments(path_test_aligned, 'CLASSIFY')
     classifier.main(arguments_classifier)
     # print("konec 4. command")
-    """
+
     print("Waiting on results...")
     path_result = os.getcwd()
     path_origin = path_test_raw
@@ -350,9 +346,9 @@ def call_commands():
                 print('\rLoading: \\', end="")
     print("\rResults are in.")
     print()
-    print(multiples)
     print("Collecting group images and creating folders")
-    group_images(path_result, multiples)
+    group_images(path_result)
+
     exit(0)
 
 
@@ -367,8 +363,6 @@ def check_number_of_images(path):
         num_of_folders += 1
     if num_of_folders == 0:
         return
-    # print("num of folders:")
-    # print(num_of_folders)
     counter_array = [0] * num_of_folders
 
     counter = 0
@@ -414,10 +408,9 @@ def check_number_of_images(path):
 
 
 path_finder(pathlib.PurePath(os.getcwd()))
-root = Tk()
-# print(path_train_raw, path_train_aligned, path_test_raw, path_test_aligned, path_model, path_classifier_pickle)
-check_number_of_images(str(path_train_raw))
-root.destroy()
+# root = Tk()
+# check_number_of_images(str(path_train_raw))
+# root.destroy()
 vse_slike = findImages.get_images()
 loop = 0  # na vsak interval pogleda sliko, da ne gleda slik ene za drugo
 while True:
@@ -433,5 +426,4 @@ while True:
 
     root = Tk()
     app = OpenWindow(root)
-    print(multiples)
     root.mainloop()
