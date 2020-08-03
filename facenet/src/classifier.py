@@ -164,7 +164,6 @@ def main(args):
                     path_img = name + ending
                     imgObject = check_if_multi(Path(path_img))
                     if imgObject is not None:
-                        config.beta += 1
                         for cls in class_names:
                             ImageObject.append_to_folder(imgObject, cls)
                         config.final_multi.append(imgObject)
@@ -172,7 +171,6 @@ def main(args):
                         pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
                         copy2(str(paths[i]), new_dir)
                     elif float(best_class_probabilities[i]) > 0.700:
-                        config.beta += 1
                         new_dir = Path(results_path) / Path(class_names[best_class_indices[i]])
                         pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
                         copy2(str(paths[i]), new_dir)
