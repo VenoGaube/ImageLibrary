@@ -163,17 +163,14 @@ def main(args):
                     name = str(name[:-2])
                     path_img = name + ending
                     imgObject = check_if_multi(Path(path_img))
-                    if imgObject is not None:
-                        for element in config.final_multi:
-                            if Path(element.path_to_image).stem == Path(imgObject.path_to_image).stem:
-                                ImageObject.append_to_folder(imgObject, class_names[best_class_indices[i]])
-                                break
-                        ImageObject.append_to_folder(imgObject, class_names[best_class_indices[i]])
-                        config.final_multi.append(imgObject)
-                        new_dir = Path(results_path) / Path(class_names[best_class_indices[i]])
-                        pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
-                        copy2(str(paths[i]), new_dir)
-                    elif float(best_class_probabilities[i]) > 0.700:
+                    if float(best_class_probabilities[i]) > 0.750:
+                        if imgObject is not None:
+                            for element in config.final_multi:
+                                if Path(element.path_to_image).stem == Path(imgObject.path_to_image).stem:
+                                    ImageObject.append_to_folder(imgObject, class_names[best_class_indices[i]])
+                                    break
+                            ImageObject.append_to_folder(imgObject, class_names[best_class_indices[i]])
+                            config.final_multi.append(imgObject)
                         new_dir = Path(results_path) / Path(class_names[best_class_indices[i]])
                         pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
                         copy2(str(paths[i]), new_dir)
