@@ -164,8 +164,11 @@ def main(args):
                     path_img = name + ending
                     imgObject = check_if_multi(Path(path_img))
                     if imgObject is not None:
-                        for cls in class_names:
-                            ImageObject.append_to_folder(imgObject, cls)
+                        j = 0
+                        for prediction in predictions[i]:
+                            if prediction > 1.0 / len(class_names):
+                                ImageObject.append_to_folder(imgObject, class_names[j])
+                            j += 1
                         config.final_multi.append(imgObject)
                         new_dir = Path(results_path) / Path(class_names[best_class_indices[i]])
                         pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
