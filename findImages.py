@@ -51,18 +51,16 @@ def search_directory(rootdir, array):
                     or rootdir.name.endswith(".JPG"): # or rootdir.name.endswith(".png") or rootdir.name.endswith(".PNG"):
                 image = cv2.imread(str(rootdir))
                 height, width, c = image.shape
-                # preverimo če je slika dovolj velika
-                if  width > 1500 or height > 1500:
-                    # Pridobimo čas in datum iz meta podatkov
-                    image_date = get_date(rootdir)
-                    # Če smo dobili nek datum in čas potem gremo v if, drugače to sliko popolnoma preskočimo
-                    if image_date is not None:
-                        # Dodamo sliko in podatke v array
-                        gallery_dir = path_gallery
-                        copy2(rootdir, gallery_dir)
-                        picture = {'path': Path(rootdir), 'date': image_date}
-                        array.append(dict(picture))
-                        print('\rLoading: -', end="")
+                # Pridobimo čas in datum iz meta podatkov
+                image_date = get_date(rootdir)
+                # Če smo dobili nek datum in čas potem gremo v if, drugače to sliko popolnoma preskočimo
+                if image_date is not None:
+                    # Dodamo sliko in podatke v array
+                    gallery_dir = path_gallery
+                    copy2(rootdir, gallery_dir)
+                    picture = {'path': Path(rootdir), 'date': image_date}
+                    array.append(dict(picture))
+                    print('\rLoading: -', end="")
 
         else:
             for file in rootdir.iterdir():
