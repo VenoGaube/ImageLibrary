@@ -1,6 +1,7 @@
 tensorflow==1.7
 scipy==1.1.0
 numpy==1.16.1
+networkx==1.11
 setuptools
 scikit-learn
 opencv-python

@@ -49,7 +49,12 @@ def _chinese_whispers(encoding_list, threshold=0.55, iterations=20):
     nodes = []
     edges = []
 
-    image_paths, encodings = zip(*encoding_list)
+    image_paths = []
+    encodings = []
+    for i in range(len(encoding_list)):
+        image_paths.append(encoding_list[i].path_to_image)
+        encodings.append(encoding_list[i].encoding)
+    # image_paths, encodings = zip(*encoding_list)
 
     if len(encodings) <= 1:
         print ("No enough encodings to cluster!")
@@ -147,7 +152,7 @@ def cluster_facial_encodings(facial_encodings):
         return []
 
     # Only use the chinese whispers algorithm for now
-    sorted_clusters = _chinese_whispers(facial_encodings.items())
+    sorted_clusters = _chinese_whispers(facial_encodings)
     return sorted_clusters
 
 def compute_facial_encodings(sess,images_placeholder,embeddings,phase_train_placeholder,image_size,

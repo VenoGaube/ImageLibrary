@@ -1,19 +1,19 @@
 """An example of how to use your own dataset to train a classifier that recognizes people.
 """
 # MIT License
-# 
+#
 # Copyright (c) 2016 David Sandberg
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -119,7 +119,8 @@ def main(args):
             nrof_images = len(paths)
             nrof_batches_per_epoch = int(math.ceil(1.0 * nrof_images / args.batch_size))
             emb_array = np.zeros((nrof_images, embedding_size))
-            bar = progressbar.ProgressBar(maxval=nrof_batches_per_epoch, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+            bar = progressbar.ProgressBar(maxval=nrof_batches_per_epoch,
+                                          widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
             bar.start()
             for i in range(nrof_batches_per_epoch):
                 start_index = i * args.batch_size
@@ -134,62 +135,27 @@ def main(args):
             classifier_filename_exp = os.path.expanduser(args.classifier_filename)
             config.embedded_array = emb_array
 
-            if args.mode == 'TRAIN':
-                # Train classifier
-                print('Training classifier')
-                model = SVC(kernel='linear', probability=True)
-                model.fit(emb_array, labels)
+            encodings = []
+            for i in range(len(paths)):
+                encodings.append(ImageEncoding(paths[i], emb_array[i]))
 
-                # Create a list of class names
-                class_names = [cls.name.replace('_', ' ') for cls in dataset]
+            clusters = clustering.cluster_facial_encodings(encodings)
+            print(clusters)
 
-                # Saving classifier model
-                with open(classifier_filename_exp, 'wb') as outfile:
-                    pickle.dump((model, class_names), outfile)
-                print('Saved classifier model to file "%s"' % classifier_filename_exp)
+            results_path = os.getcwd()
+            if not os.path.exists('results'):
+                os.mkdir('results')
+                results_path = os.path.join(results_path, 'results')
+            else:
+                results_path = os.path.join(results_path, 'results')
 
-            elif args.mode == 'CLASSIFY':
-                # Classify images
-                print('Testing classifier')
-                with open(classifier_filename_exp, 'rb') as infile:
-                    (model, class_names) = pickle.load(infile)
-
-                print('Loaded classifier model from file "%s"' % classifier_filename_exp)
-
-                predictions = model.predict_proba(emb_array)
-                best_class_indices = np.argmax(predictions, axis=1)
-                best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
-
-                results_path = os.getcwd()
-                if not os.path.exists('results'):
-                    os.mkdir('results')
-                    results_path = os.path.join(results_path, 'results')
-                else:
-                    results_path = os.path.join(results_path, 'results')
-                print(results_path)
-                for i in range(len(best_class_indices)):
-                    # print('%4d %s %s: %.3f' % (i, paths[i], class_names[best_class_indices[i]],
-                    # best_class_probabilities[i])) Vsako sliko dodamo not v array in če se isti stem pojavi več kot
-                    # 1 krat, imamo multiple face sliko. Potem ta array obdelamo na koncu te funkcije pa dodamo vse
-                    # te multiple slike v array multiples, kot prej. In to je to.
-                    original_name, ending = os.path.splitext(paths[i])
-                    name = original_name
-                    name = str(name[:-2])
-                    path_img = name + ending
-                    imgObject = check_if_multi(Path(path_img))
-                    if float(best_class_probabilities[i]) > 0.750:
-                        if imgObject is not None:
-                            for element in config.final_multi:
-                                if Path(element.path_to_image).stem == Path(imgObject.path_to_image).stem:
-                                    ImageObject.append_to_folder(imgObject, class_names[best_class_indices[i]])
-                                    break
-                            ImageObject.append_to_folder(imgObject, class_names[best_class_indices[i]])
-                            config.final_multi.append(imgObject)
-                        new_dir = Path(results_path) / Path(class_names[best_class_indices[i]])
-                        pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
-                        copy2(str(paths[i]), new_dir)
-                # accuracy = np.mean(np.equal(best_class_indices, labels))
-                # print('Accuracy: %.3f' % accuracy)
+            for cluster in range(len(clusters)):
+                new_dir = Path(results_path) / Path(str(cluster))
+                if not os.path.exists(new_dir):
+                    os.mkdir(new_dir)
+                for element in range(len(clusters[cluster])):
+                    print(str(clusters[cluster][element]))
+                    copy2(str(clusters[cluster][element]), new_dir)
 
 
 def split_dataset(dataset, min_nrof_images_per_class, nrof_train_images_per_class):
@@ -203,41 +169,3 @@ def split_dataset(dataset, min_nrof_images_per_class, nrof_train_images_per_clas
             train_set.append(facenet.ImageClass(cls.name, paths[:nrof_train_images_per_class]))
             test_set.append(facenet.ImageClass(cls.name, paths[nrof_train_images_per_class:]))
     return train_set, test_set
-
-
-def parse_arguments(argv):
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('mode', type=str, choices=['TRAIN', 'CLASSIFY'],
-                        help='Indicates if a new classifier should be trained or a classification ' +
-                             'model should be used for classification', default='CLASSIFY')
-    parser.add_argument('data_dir', type=str,
-                        help='Path to the data directory containing aligned LFW face patches.')
-    parser.add_argument('model', type=str,
-                        help='Could be either a directory containing the meta_file and ckpt_file or a model protobuf (.pb) file')
-    parser.add_argument('classifier_filename',
-                        help='Classifier model file name as a pickle (.pkl) file. ' +
-                             'For training this is the output and for classification this is an input.')
-    parser.add_argument('--use_split_dataset',
-                        help='Indicates that the dataset specified by data_dir should be split into a training and test set. ' +
-                             'Otherwise a separate test set can be specified using the test_data_dir option.',
-                        action='store_true')
-    parser.add_argument('--test_data_dir', type=str,
-                        help='Path to the test data directory containing aligned images used for testing.')
-    parser.add_argument('--batch_size', type=int,
-                        help='Number of images to process in a batch.', default=90)
-    parser.add_argument('--image_size', type=int,
-                        help='Image size (height, width) in pixels.', default=160)
-    parser.add_argument('--seed', type=int,
-                        help='Random seed.', default=666)
-    parser.add_argument('--min_nrof_images_per_class', type=int,
-                        help='Only include classes with at least this number of images in the dataset', default=20)
-    parser.add_argument('--nrof_train_images_per_class', type=int,
-                        help='Use this number of images from each class for training and the rest for testing',
-                        default=10)
-
-    return parser.parse_args(argv)
-
-
-if __name__ == '__main__':
-    main(parse_arguments(sys.argv[1:]))

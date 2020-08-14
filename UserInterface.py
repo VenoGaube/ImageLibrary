@@ -15,6 +15,7 @@ import findImages
 import config
 from facenet.src.align import align_dataset_mtcnn
 import facenet.src.classifier as classifier
+import facenet.src.encodings as encodings
 
 
 # TODO: Poglej kako se dela ko je več obrazov na sliki in dodaj to še v dodajanje v te folderje za multi ljudi.
@@ -295,7 +296,7 @@ def call_commands():
     arguments_train_aligned = AlignArguments(path_train_raw, path_train_aligned)
     align_dataset_mtcnn.main(arguments_train_aligned)
     # print("konec 1. command")
-
+    """
     # Test Command
     print('\rResizing found images.')
     findImages.resize_images(str(path_test_raw))
@@ -304,11 +305,20 @@ def call_commands():
     align_dataset_mtcnn.main(arguments_train_aligned)
     # print("konec 2. command")
 
+    # Encoding Command
+    print("\rLoading Encoder Command")
+    arguments_classifier = ClassifyArguments(path_test_aligned, 'TRAIN')
+    encodings.main(arguments_classifier)
+    # print("konec Encoding command")
+    """
     # Train Command
     print("\rLoading Classifier TRAIN Command")
     arguments_classifier = ClassifyArguments(path_train_aligned, 'TRAIN')
     classifier.main(arguments_classifier)
     # print("konec 3. command")
+    """
+
+
     """
     # Train Command
     print("\rLoading Classifier TRAIN Command")
@@ -321,7 +331,7 @@ def call_commands():
     arguments_classifier = ClassifyArguments(path_test_aligned, 'CLASSIFY')
     classifier.main(arguments_classifier)
     # print("konec 4. command")
-
+    """
     print("Waiting on results...")
     path_result = os.getcwd()
     path_origin = path_test_raw
@@ -417,8 +427,8 @@ path_finder(pathlib.PurePath(os.getcwd()))
 # root = Tk()
 # check_number_of_images(str(path_train_raw))
 # root.destroy()
-call_commands()
 vse_slike = findImages.get_images()
+call_commands()
 loop = 0  # na vsak interval pogleda sliko, da ne gleda slik ene za drugo
 while True:
     image = secrets.choice(vse_slike)
