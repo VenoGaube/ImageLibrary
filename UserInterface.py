@@ -287,7 +287,7 @@ def remove_duplicates(folder_list):
 
 
 def call_commands():
-
+    """
     # Train Command
     print('\rResizing found images.')
     findImages.resize_images(str(path_train_raw))
@@ -307,6 +307,12 @@ def call_commands():
     # Train Command
     print("\rLoading Classifier TRAIN Command")
     arguments_classifier = ClassifyArguments(path_train_aligned, 'TRAIN')
+    classifier.main(arguments_classifier)
+    # print("konec 3. command")
+    """
+    # Train Command
+    print("\rLoading Classifier TRAIN Command")
+    arguments_classifier = ClassifyArguments(path_test_aligned, 'TRAIN')
     classifier.main(arguments_classifier)
     # print("konec 3. command")
 
@@ -411,6 +417,7 @@ path_finder(pathlib.PurePath(os.getcwd()))
 # root = Tk()
 # check_number_of_images(str(path_train_raw))
 # root.destroy()
+call_commands()
 vse_slike = findImages.get_images()
 loop = 0  # na vsak interval pogleda sliko, da ne gleda slik ene za drugo
 while True:

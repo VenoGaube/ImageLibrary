@@ -38,6 +38,7 @@ import os
 import sys
 import math
 import pickle
+import time
 from sklearn.svm import SVC
 from shutil import copy2
 from pathlib import Path
@@ -63,6 +64,11 @@ def check_if_multi(image_path):
         if name == Path(image_path).stem:
             return imageObjects[i]
     return None
+
+
+def euclideanMeanDistance(x, y):
+    dist = tf.sqrt(tf.reduce_sum(tf.square(x - y)))
+    return dist
 
 
 def main(args):
@@ -106,20 +112,31 @@ def main(args):
             nrof_images = len(paths)
             nrof_batches_per_epoch = int(math.ceil(1.0 * nrof_images / args.batch_size))
             emb_array = np.zeros((nrof_images, embedding_size))
-            bar = progressbar.ProgressBar(maxval=len(cls.image_paths), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+            bar = progressbar.ProgressBar(maxval=nrof_batches_per_epoch, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
             bar.start()
             for i in range(nrof_batches_per_epoch):
                 start_index = i * args.batch_size
                 end_index = min((i + 1) * args.batch_size, nrof_images)
                 paths_batch = paths[start_index:end_index]
-                bar.update(i + 1)
                 images = facenet.load_data(paths_batch, False, False, args.image_size)
                 feed_dict = {images_placeholder: images, phase_train_placeholder: False}
                 emb_array[start_index:end_index, :] = sess.run(embeddings, feed_dict=feed_dict)
+                bar.update(i + 1)
 
             bar.finish()
             classifier_filename_exp = os.path.expanduser(args.classifier_filename)
+            config.embedded_array = emb_array
 
+            print("start")
+            start_time = time.time()
+            for tensor1 in range(nrof_images):
+                for tensor2 in range(tensor1, nrof_images):
+                    x = np.array(emb_array[tensor1])
+                    y = np.array(emb_array[tensor2])
+                    distance = euclideanMeanDistance(x, y)
+                    #if sess.run(distance) < 1:
+            print("--- %s seconds ---" % (time.time() - start_time))
+            print("done")
             if args.mode == 'TRAIN':
                 # Train classifier
                 print('Training classifier')

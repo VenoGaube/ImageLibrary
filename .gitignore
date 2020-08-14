@@ -1,5 +1,5 @@
 /venv
-# facenet/data/images
+facenet/data/images
 facenet/models/my_classifier.pkl
 /results
 
