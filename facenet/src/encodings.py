@@ -133,15 +133,37 @@ def main(args):
 
             bar.finish()
             classifier_filename_exp = os.path.expanduser(args.classifier_filename)
-            config.embedded_array = emb_array
 
             encodings = []
             for i in range(len(paths)):
                 encodings.append(ImageEncoding(paths[i], emb_array[i]))
 
             clusters = clustering.cluster_facial_encodings(encodings)
-            print(clusters)
 
+            for cluster in range(len(clusters)):
+                for data in clusters[cluster]:
+                    for i in range(len(paths)):
+                        if str(data) == str(paths[i]):
+                            labels[i] = cluster
+                            break
+
+            if args.mode == 'TRAIN':
+                # Train classifier
+                print('Training classifier')
+                model = SVC(kernel='linear', probability=True)
+                model.fit(emb_array, labels)
+
+                # Create a list of class names
+                class_names = []
+                for name in range(len(clusters)):
+                    class_names.append(name)
+
+                # Saving classifier model
+                with open(classifier_filename_exp, 'wb') as outfile:
+                    pickle.dump((model, class_names), outfile)
+                print('Saved classifier model to file "%s"' % classifier_filename_exp)
+
+            """
             results_path = os.getcwd()
             if not os.path.exists('results'):
                 os.mkdir('results')
@@ -156,7 +178,7 @@ def main(args):
                 for element in range(len(clusters[cluster])):
                     print(str(clusters[cluster][element]))
                     copy2(str(clusters[cluster][element]), new_dir)
-
+            """
 
 def split_dataset(dataset, min_nrof_images_per_class, nrof_train_images_per_class):
     train_set = []

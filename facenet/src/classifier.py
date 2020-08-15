@@ -185,7 +185,7 @@ def main(args):
                                     break
                             ImageObject.append_to_folder(imgObject, class_names[best_class_indices[i]])
                             config.final_multi.append(imgObject)
-                        new_dir = Path(results_path) / Path(class_names[best_class_indices[i]])
+                        new_dir = Path(results_path) / Path(str(class_names[best_class_indices[i]]))
                         pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
                         copy2(str(paths[i]), new_dir)
                 # accuracy = np.mean(np.equal(best_class_indices, labels))

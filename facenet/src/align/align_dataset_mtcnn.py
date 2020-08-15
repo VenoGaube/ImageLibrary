@@ -89,6 +89,8 @@ def main(args):
             bar.start()
             j = 0
             for image_path in cls.image_paths:
+                if Path(image_path).stem == "test":
+                    continue
                 nrof_images_total += 1
                 filename = os.path.splitext(os.path.split(image_path)[1])[0]
                 output_filename = os.path.join(output_class_dir, filename + '.png')

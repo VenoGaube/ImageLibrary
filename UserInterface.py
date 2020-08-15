@@ -271,10 +271,10 @@ def create_folders(multi, results_path):
     flag = True
     for folder in multi.folders:
         if flag:
-            group_folder = folder
+            group_folder = str(folder)
             flag = False
         else:
-            group_folder = group_folder + "&" + folder
+            group_folder = group_folder + "&" + str(folder)
     group_path = str(results_path) + "\\" + str(group_folder)
     if os.path.isdir(group_path):
         copy2(str(multi.path_to_image), str(group_path))
@@ -306,10 +306,11 @@ def call_commands():
     # print("konec 2. command")
 
     # Encoding Command
-    print("\rLoading Encoder Command")
+    print("\rLoading Encoder and Train Command")
     arguments_classifier = ClassifyArguments(path_test_aligned, 'TRAIN')
     encodings.main(arguments_classifier)
     # print("konec Encoding command")
+
     """
     # Train Command
     print("\rLoading Classifier TRAIN Command")
@@ -318,20 +319,12 @@ def call_commands():
     # print("konec 3. command")
     """
 
-
-    """
-    # Train Command
-    print("\rLoading Classifier TRAIN Command")
-    arguments_classifier = ClassifyArguments(path_test_aligned, 'TRAIN')
-    classifier.main(arguments_classifier)
-    # print("konec 3. command")
-
     # Classify Command
     print("\rLoading Classifier CLASSIFY Command")
     arguments_classifier = ClassifyArguments(path_test_aligned, 'CLASSIFY')
     classifier.main(arguments_classifier)
     # print("konec 4. command")
-    """
+
     print("Waiting on results...")
     path_result = os.getcwd()
     path_origin = path_test_raw
