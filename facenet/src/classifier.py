@@ -177,7 +177,7 @@ def main(args):
                     name = str(name[:-2])
                     path_img = name + ending
                     imgObject = check_if_multi(Path(path_img))
-                    if float(best_class_probabilities[i]) > 0.750:
+                    if float(best_class_probabilities[i]) > 0.850:
                         if imgObject is not None:
                             for element in config.final_multi:
                                 if Path(element.path_to_image).stem == Path(imgObject.path_to_image).stem:

@@ -182,7 +182,7 @@ class OpenWindow:
 
         for folder in Path(path).iterdir():
             # print(folder.name)
-            if folder.name == "test.txt":
+            if folder.name == "text.txt":
                 continue
             num_of_folders += 1
         if num_of_folders == 0:
@@ -196,10 +196,10 @@ class OpenWindow:
         j = 0
         i = 0
         for folder in Path(path).iterdir():
-            if folder.name == "test.txt":
+            if folder.name == "text.txt":
                 continue
             for element in folder.iterdir():
-                if element.name == "test.txt":
+                if element.name == "text.txt":
                     continue
                 # print("element = %s" % element)
                 counter_array[i] += 1
@@ -224,7 +224,7 @@ class OpenWindow:
             for folder in Path(path).iterdir():
                 # print(folder.name)
                 stevec = 0
-                if folder.name == "test.txt":
+                if folder.name == "text.txt":
                     continue
                 for file in folder.iterdir():
                     stevec += 1
@@ -370,7 +370,7 @@ def check_number_of_images(path):
 
     for folder in Path(path).iterdir():
         # print(folder.name)
-        if folder.name == "test.txt":
+        if folder.name == "text.txt":
             continue
         num_of_folders += 1
     if num_of_folders == 0:
@@ -382,10 +382,10 @@ def check_number_of_images(path):
     j = 0
     i = 0
     for folder in Path(path).iterdir():
-        if folder.name == "test.txt":
+        if folder.name == "text.txt":
             continue
         for element in folder.iterdir():
-            if element.name == "test.txt":
+            if element.name == "text.txt":
                 continue
             # print("element = %s" % element)
             counter_array[i] += 1
@@ -410,7 +410,7 @@ def check_number_of_images(path):
         for folder in Path(path).iterdir():
             # print(folder.name)
             stevec = 0
-            if folder.name == "test.txt":
+            if folder.name == "text.txt":
                 continue
             for file in folder.iterdir():
                 stevec += 1
