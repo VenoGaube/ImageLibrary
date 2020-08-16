@@ -328,14 +328,16 @@ def call_commands():
     print("Waiting on results...")
     path_result = os.getcwd()
     path_origin = path_test_raw
-
+    """
     for folder in Path(path_origin).iterdir():
         if folder.name == "gallery":
             path_origin = path_origin / folder
+    """
     for folder in Path(path_result).iterdir():
         if folder.name == "results":
             path_result = path_result / folder
     # print(path_result, path_origin)
+    """
     for folder in Path(path_result).iterdir():
         for pic in folder.iterdir():
             original_name, ending = os.path.splitext(pic)
@@ -353,6 +355,7 @@ def call_commands():
                     copy2(path_origin / img, path_result / folder)
                     break
                 print('\rLoading: \\', end="")
+    """
     print("\rResults are in.")
     print()
     print("Collecting group images and creating folders")

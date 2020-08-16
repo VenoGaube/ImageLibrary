@@ -27,7 +27,7 @@ def path_finder(path):
 
 
 path_gallery = ""  # "\\facenet\\data\\images\\test_raw\\gallery"
-resize = 250, 250
+resize = 0.1
 path_finder(pathlib.PurePath(os.getcwd()))
 
 
@@ -98,7 +98,6 @@ def get_images():
             print('\rLoaded Images From Above Folder.')
 
     print("\rFound %d" % len(array) + " images.")
-    #resize_images(path_gallery)
     root.destroy()
     return array
 
@@ -111,9 +110,12 @@ def resize_images(path):
         if slika.name.endswith(".txt"):
             continue
         resized = Image.open(slika)
+        shape = resized.size
+        shape = list(shape)
+        shape[0] = int(shape[0] * resize)
+        shape[1] = int(shape[1] * resize)
         print('\rLoading: /', end="")
-        resized_img = resized.resize(resize, Image.ANTIALIAS)
+        resized_img = resized.resize(tuple(shape), Image.ANTIALIAS)
         print('\rLoading: -', end="")
         resized_img.save(slika)
         print('\rLoading: \\', end="")
-
