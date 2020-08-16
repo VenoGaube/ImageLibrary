@@ -21,12 +21,14 @@ def face_distance(face_encodings, face_to_compare):
     #return 1/np.linalg.norm(face_encodings - face_to_compare, axis=1)
     return np.sum(face_encodings*face_to_compare,axis=1)
 
+
 def load_model(model_dir, meta_file, ckpt_file):
     model_dir_exp = os.path.expanduser(model_dir)
     saver = tf.train.import_meta_graph(os.path.join(model_dir_exp, meta_file))
     saver.restore(tf.get_default_session(), os.path.join(model_dir_exp, ckpt_file))
 
-def _chinese_whispers(encoding_list, threshold=0.55, iterations=20):
+
+def _chinese_whispers(encoding_list, threshold=0.35, iterations=20):
     """ Chinese Whispers Algorithm
 
     Modified from Alex Loveless' implementation,
