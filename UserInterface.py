@@ -275,7 +275,7 @@ def create_folders(multi, results_path):
             flag = False
         else:
             group_folder = group_folder + "&" + str(folder)
-    group_path = str(results_path) + "\\" + str(group_folder)
+    group_path = os.path.join(str(results_path), str(group_folder))
     if os.path.isdir(group_path):
         copy2(str(multi.path_to_image), str(group_path))
     else:
