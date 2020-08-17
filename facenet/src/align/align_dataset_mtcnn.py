@@ -43,6 +43,21 @@ class ImageObject:
     def __init__(self, path_to_image):
         self.path_to_image = Path(path_to_image)
         self.folders = []
+        self.boundingbox = []
+        self.clusterID = []
+        self.embedding = []
+
+    def append_to_folder(self, folder_name):
+        self.folders.append(folder_name)
+
+    def append_bb(self, bounding_boxes):
+        self.boundingbox.append(bounding_boxes)
+
+    def append_embedding(self, embedding):
+        self.embedding.append(embedding)
+
+    def set_cluster_id(self, clusterID):
+        self.clusterID = clusterID
 
 
 def main(args):
@@ -88,6 +103,7 @@ def main(args):
             bar = progressbar.ProgressBar(maxval=len(cls.image_paths),widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
             bar.start()
             j = 0
+
             for image_path in cls.image_paths:
                 if Path(image_path).stem == "text":
                     continue
@@ -114,6 +130,8 @@ def main(args):
                                                               factor)
                         nrof_faces = bounding_boxes.shape[0]
                         if nrof_faces > 0:
+                            # Append Path to Image
+                            config.data.append(ImageObject(image_path))
                             det = bounding_boxes[:, 0:4]
                             det_arr = []
                             img_size = np.asarray(img.shape)[0:2]
@@ -142,6 +160,8 @@ def main(args):
                                 bb[1] = np.maximum(det[1] - args.margin / 2, 0)
                                 bb[2] = np.minimum(det[2] + args.margin / 2, img_size[1])
                                 bb[3] = np.minimum(det[3] + args.margin / 2, img_size[0])
+                                # Append BoundingBox of Image
+                                config.data[-1].append_bb(bb)
                                 cropped = img[bb[1]:bb[3], bb[0]:bb[2], :]
                                 scaled = misc.imresize(cropped, (args.image_size, args.image_size), interp='bilinear')
                                 nrof_successfully_aligned += 1

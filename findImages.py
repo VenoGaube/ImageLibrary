@@ -27,7 +27,7 @@ def path_finder(path):
 
 
 path_gallery = ""  # "\\facenet\\data\\images\\test_raw\\gallery"
-resize = 0.1
+resize = 0.1 # NE POZABI SPREMENIT TUDI V UserInterface.py RESIZE-A!
 path_finder(pathlib.PurePath(os.getcwd()))
 
 

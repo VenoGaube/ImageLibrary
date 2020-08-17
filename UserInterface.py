@@ -237,9 +237,21 @@ class ImageObject:
     def __init__(self, path_to_image):
         self.path_to_image = Path(path_to_image)
         self.folders = []
+        self.boundingbox = []
+        self.clusterID = []
+        self.embedding = []
 
     def append_to_folder(self, folder_name):
         self.folders.append(folder_name)
+
+    def append_bb(self, bounding_boxes):
+        self.boundingbox.append(bounding_boxes)
+
+    def append_embedding(self, embedding):
+        self.embedding.append(embedding)
+
+    def set_cluster_id(self, clusterID):
+        self.clusterID = clusterID
 
 
 def folder_check(imageInstance, folder_name):
@@ -325,19 +337,33 @@ def call_commands():
     classifier.main(arguments_classifier)
     # print("konec 4. command")
 
+    resize = 10
+    for i in range(len(config.data)):
+        slika = cv2.imread(str(config.data[i].path_to_image))
+        for bb in range(len(config.data[i].boundingbox)):
+            x = config.data[i].boundingbox[bb][0]
+            y = config.data[i].boundingbox[bb][1]
+            w = config.data[i].boundingbox[bb][2]
+            h = config.data[i].boundingbox[bb][3]
+            cv2.rectangle(slika, (x, y), (x + w, y + h), (36, 255, 12), 1)
+            cv2.putText(slika, str(config.data[i].clusterID[bb]), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+        cv2.imshow("Image", slika)
+        cv2.waitKey(0)
+
+    """
     print("Waiting on results...")
     path_result = os.getcwd()
     path_origin = path_test_raw
-    """
+    
     for folder in Path(path_origin).iterdir():
         if folder.name == "gallery":
             path_origin = path_origin / folder
-    """
+    
     for folder in Path(path_result).iterdir():
         if folder.name == "results":
             path_result = path_result / folder
     # print(path_result, path_origin)
-    """
+    
     for folder in Path(path_result).iterdir():
         for pic in folder.iterdir():
             original_name, ending = os.path.splitext(pic)
@@ -355,11 +381,13 @@ def call_commands():
                     copy2(path_origin / img, path_result / folder)
                     break
                 print('\rLoading: \\', end="")
+    
+    # print("\rResults are in.")
+    # print()
+    # print("Collecting group images and creating folders")
+
+    # group_images(path_result)
     """
-    print("\rResults are in.")
-    print()
-    print("Collecting group images and creating folders")
-    group_images(path_result)
 
     exit(0)
 

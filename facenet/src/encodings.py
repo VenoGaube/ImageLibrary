@@ -49,9 +49,21 @@ class ImageObject:
     def __init__(self, path_to_image):
         self.path_to_image = Path(path_to_image)
         self.folders = []
+        self.boundingbox = []
+        self.clusterID = []
+        self.embedding = []
 
     def append_to_folder(self, folder_name):
         self.folders.append(folder_name)
+
+    def append_bb(self, bounding_boxes):
+        self.boundingbox.append(bounding_boxes)
+
+    def append_embedding(self, embedding):
+        self.embedding.append(embedding)
+
+    def append_cluster_id(self, clusterID):
+        self.clusterID.append(clusterID)
 
 
 class ImageEncoding:
@@ -139,6 +151,31 @@ def main(args):
                 encodings.append(ImageEncoding(paths[i], emb_array[i]))
 
             clusters = clustering.cluster_facial_encodings(encodings)
+
+            # set clusters
+            for cluster in range(len(clusters)):
+                for data in clusters[cluster]:
+                    for i in range(len(config.data)):
+                        cluster_name, ending = os.path.splitext(data)
+                        config_name, konec = os.path.splitext(config.data[i].path_to_image)
+                        name = cluster_name
+                        if name[-2] == '_':
+                            name = str(name[:-2])
+                        data = name
+                        if Path(config_name).stem == Path(data).stem:
+                            ImageObject.append_cluster_id(config.data[i], cluster)
+
+            # set embedding
+            for i in range(len(encodings)):
+                for j in range(len(config.data)):
+                    encodings_name, ending = os.path.splitext(encodings[i].path_to_image)
+                    config_name, konec = os.path.splitext(config.data[j].path_to_image)
+                    name = encodings_name
+                    if name[-2] == '_':
+                        name = str(name[:-2])
+                    data = name
+                    if Path(config_name).stem == Path(data).stem:
+                        ImageObject.append_embedding(config.data[j], encodings[i].encoding)
 
             for cluster in range(len(clusters)):
                 for data in clusters[cluster]:
