@@ -28,7 +28,7 @@ def load_model(model_dir, meta_file, ckpt_file):
     saver.restore(tf.get_default_session(), os.path.join(model_dir_exp, ckpt_file))
 
 
-def _chinese_whispers(encoding_list, threshold=0.25, iterations=20):
+def _chinese_whispers(encoding_list, threshold=0.6, iterations=20):
     """ Chinese Whispers Algorithm
 
     Modified from Alex Loveless' implementation,

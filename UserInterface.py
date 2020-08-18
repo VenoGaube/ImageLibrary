@@ -401,24 +401,28 @@ def call_commands():
     print("Collecting group images and creating folders")
 
     group_images(path_result)
-    flag = 0
     for i in range(len(config.data)):
         slika = cv2.imread(str(config.data[i].path_to_image))
-        flag = 0
-        if len(config.data[i].boundingbox) < 1:
-            flag = 1
-        for bb in range(len(config.data[i].boundingbox)):
-            x = int(config.data[i].boundingbox[bb][0])
-            y = int(config.data[i].boundingbox[bb][1])
-            w = int(config.data[i].boundingbox[bb][2])
-            h = int(config.data[i].boundingbox[bb][3])
-            cv2.rectangle(slika, (x, y), (w, h), (36, 255, 12), 1)
-            if len(config.data[i].clusterID) < 1:
-                flag = 1
-                break
-            cv2.putText(slika, str(config.data[i].clusterID[bb]), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
-        if flag:
+        if len(config.data[i].clusterID) < 1:
             continue
+        if len(config.data[i].boundingbox) < 1:
+            continue
+        if len(config.data[i].clusterID) <= len(config.data[i].boundingbox):
+            for j in range(len(config.data[i].clusterID)):
+                x = int(config.data[i].boundingbox[j][0])
+                y = int(config.data[i].boundingbox[j][1])
+                w = int(config.data[i].boundingbox[j][2])
+                h = int(config.data[i].boundingbox[j][3])
+                cv2.rectangle(slika, (x, y), (w, h), (36, 255, 12), 1)
+                cv2.putText(slika, str(config.data[i].clusterID[j]), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+        else:
+            for j in range(len(config.data[i].boundingbox)):
+                x = int(config.data[i].boundingbox[j][0])
+                y = int(config.data[i].boundingbox[j][1])
+                w = int(config.data[i].boundingbox[j][2])
+                h = int(config.data[i].boundingbox[j][3])
+                cv2.rectangle(slika, (x, y), (w, h), (36, 255, 12), 1)
+                cv2.putText(slika, str(config.data[i].clusterID[j]), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
         cv2.imshow("Image", slika)
         cv2.waitKey(0)
 

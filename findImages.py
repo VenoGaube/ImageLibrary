@@ -35,10 +35,14 @@ def get_date(img_path):
     # Return Exif tags
     tags = exifread.process_file(f)
     # Vzamemo samo tiste, ki so vezani na datum in čas
+    dateTime = None
+    orientation = None
     if "Image DateTime" in tags or "DateTimeOriginal" in tags:
         dateTime = str(tags["Image DateTime"])
         # Vrnemo pridobljen datum in čas
-        return dateTime
+    if "Image Orientation" in tags or "Orientation" in tags:
+        orientation = tags["Image Orientation"].values[0]
+    return dateTime, orientation
 
 
 def search_directory(rootdir, array):
@@ -49,7 +53,21 @@ def search_directory(rootdir, array):
             if rootdir.name.endswith(".jpeg") or rootdir.name.endswith(".JPEG") or rootdir.name.endswith(".jpg")\
                     or rootdir.name.endswith(".JPG"): # or rootdir.name.endswith(".png") or rootdir.name.endswith(".PNG"):
                 # Pridobimo čas in datum iz meta podatkov
-                image_date = get_date(rootdir)
+                image_date, orientation = get_date(rootdir)
+                image = Image.open(rootdir)
+                if orientation == 3:
+                    image = image.rotate(180, expand=True)
+                    image.save(rootdir)
+                    image.close()
+                elif orientation == 6:
+                    image = image.rotate(270, expand=True)
+                    image.save(rootdir)
+                    image.close()
+                elif orientation == 8:
+                    image = image.rotate(90, expand=True)
+                    image.save(rootdir)
+                    image.close()
+
                 # Če smo dobili nek datum in čas potem gremo v if, drugače to sliko popolnoma preskočimo
                 if image_date is not None:
                     # Dodamo sliko in podatke v array
