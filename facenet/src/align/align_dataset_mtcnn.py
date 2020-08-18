@@ -161,10 +161,10 @@ def main(args):
                                 bb[1] = np.maximum(det[1] - args.margin / 2, 0)
                                 bb[2] = np.minimum(det[2] + args.margin / 2, img_size[1])
                                 bb[3] = np.minimum(det[3] + args.margin / 2, img_size[0])
-                                bounding[0] = int(np.maximum(det[0], 0))
-                                bounding[1] = int(np.maximum(det[1], 0))
-                                bounding[2] = int(np.minimum(det[2], img_size[1]))
-                                bounding[3] = int(np.minimum(det[3], img_size[0]))
+                                bounding[0] = int(np.maximum(det[0] - args.margin / 2, 0))
+                                bounding[1] = int(np.maximum(det[1] - args.margin / 2, 0))
+                                bounding[2] = int(np.minimum(det[2] + args.margin / 2, img_size[1]))
+                                bounding[3] = int(np.minimum(det[3] + args.margin / 2, img_size[0]))
                                 # Append BoundingBox of Image
                                 config.data[-1].append_bb(list(bounding))
                                 cropped = img[bb[1]:bb[3], bb[0]:bb[2], :]

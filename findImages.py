@@ -1,14 +1,13 @@
 import os
 from pathlib import Path
 from shutil import copy2
-from PIL import Image
+from PIL import Image, ExifTags
 from tkinter.filedialog import askdirectory
 
 import tkinter as tk
 import cv2
 import exifread
 import pathlib
-import progressbar
 
 
 def path_finder(path):
@@ -32,14 +31,14 @@ path_finder(pathlib.PurePath(os.getcwd()))
 
 
 def get_date(img_path):
-    with open(img_path, 'rb') as image:
-        # Dobimo meta podatke
-        exif = exifread.process_file(image)
-        # Vzamemo samo tiste, ki so vezani na datum in čas
-        if "Image DateTime" in exif or "DateTimeOriginal" in exif:
-            dateTime = str(exif["Image DateTime"])
-            # Vrnemo pridobljen datum in čas
-            return dateTime
+    f = open(img_path, 'rb')
+    # Return Exif tags
+    tags = exifread.process_file(f)
+    # Vzamemo samo tiste, ki so vezani na datum in čas
+    if "Image DateTime" in tags or "DateTimeOriginal" in tags:
+        dateTime = str(tags["Image DateTime"])
+        # Vrnemo pridobljen datum in čas
+        return dateTime
 
 
 def search_directory(rootdir, array):
@@ -49,8 +48,6 @@ def search_directory(rootdir, array):
             # če se file konča z .jpeg ali .jpg je kategoriziran kot slika
             if rootdir.name.endswith(".jpeg") or rootdir.name.endswith(".JPEG") or rootdir.name.endswith(".jpg")\
                     or rootdir.name.endswith(".JPG"): # or rootdir.name.endswith(".png") or rootdir.name.endswith(".PNG"):
-                image = cv2.imread(str(rootdir))
-                height, width, c = image.shape
                 # Pridobimo čas in datum iz meta podatkov
                 image_date = get_date(rootdir)
                 # Če smo dobili nek datum in čas potem gremo v if, drugače to sliko popolnoma preskočimo
