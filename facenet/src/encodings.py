@@ -47,20 +47,20 @@ from facenet.contributed import clustering as clustering
 
 class ImageObject:
     def __init__(self, path_to_image):
-        self.path_to_image = Path(path_to_image)
-        self.folders = []
-        self.boundingbox = []
-        self.clusterID = []
-        self.embedding = []
+        self.path_to_image = str(path_to_image)
+        self.folders = list()
+        self.boundingbox = list()
+        self.clusterID = list()
+        self.embedding = list()
 
     def append_to_folder(self, folder_name):
         self.folders.append(folder_name)
 
     def append_bb(self, bounding_boxes):
-        self.boundingbox.append(bounding_boxes)
+        self.boundingbox.append(list(bounding_boxes))
 
     def append_embedding(self, embedding):
-        self.embedding.append(embedding)
+        self.embedding.append(list(embedding))
 
     def append_cluster_id(self, clusterID):
         self.clusterID.append(clusterID)
@@ -68,7 +68,7 @@ class ImageObject:
 
 class ImageEncoding:
     def __init__(self, path_to_image, encoding):
-        self.path_to_image = Path(path_to_image)
+        self.path_to_image = str(path_to_image)
         self.encoding = encoding
 
 
@@ -146,7 +146,7 @@ def main(args):
             bar.finish()
             classifier_filename_exp = os.path.expanduser(args.classifier_filename)
 
-            encodings = []
+            encodings = list()
             for i in range(len(paths)):
                 encodings.append(ImageEncoding(paths[i], emb_array[i]))
 
@@ -175,7 +175,7 @@ def main(args):
                         name = str(name[:-2])
                     data = name
                     if Path(config_name).stem == Path(data).stem:
-                        ImageObject.append_embedding(config.data[j], encodings[i].encoding)
+                        ImageObject.append_embedding(config.data[j], list(encodings[i].encoding))
 
             for cluster in range(len(clusters)):
                 for data in clusters[cluster]:

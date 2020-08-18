@@ -19,3 +19,4 @@ pyOpenSSL
 exifread
 progressbar
 cv2
+jsonpickle

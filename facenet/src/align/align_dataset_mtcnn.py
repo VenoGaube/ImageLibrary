@@ -41,11 +41,11 @@ import config
 
 class ImageObject:
     def __init__(self, path_to_image):
-        self.path_to_image = Path(path_to_image)
-        self.folders = []
-        self.boundingbox = []
-        self.clusterID = []
-        self.embedding = []
+        self.path_to_image = str(path_to_image)
+        self.folders = list()
+        self.boundingbox = list()
+        self.clusterID = list()
+        self.embedding = list()
 
     def append_to_folder(self, folder_name):
         self.folders.append(folder_name)
@@ -131,7 +131,7 @@ def main(args):
                         nrof_faces = bounding_boxes.shape[0]
                         if nrof_faces > 0:
                             # Append Path to Image
-                            config.data.append(ImageObject(image_path))
+                            config.data.append(ImageObject(str(image_path)))
                             det = bounding_boxes[:, 0:4]
                             det_arr = []
                             img_size = np.asarray(img.shape)[0:2]
@@ -156,12 +156,17 @@ def main(args):
                             for i, det in enumerate(det_arr):
                                 det = np.squeeze(det)
                                 bb = np.zeros(4, dtype=np.int32)
+                                bounding = np.zeros(4)
                                 bb[0] = np.maximum(det[0] - args.margin / 2, 0)
                                 bb[1] = np.maximum(det[1] - args.margin / 2, 0)
                                 bb[2] = np.minimum(det[2] + args.margin / 2, img_size[1])
                                 bb[3] = np.minimum(det[3] + args.margin / 2, img_size[0])
+                                bounding[0] = int(np.maximum(det[0], 0))
+                                bounding[1] = int(np.maximum(det[1], 0))
+                                bounding[2] = int(np.minimum(det[2], img_size[1]))
+                                bounding[3] = int(np.minimum(det[3], img_size[0]))
                                 # Append BoundingBox of Image
-                                config.data[-1].append_bb(bb)
+                                config.data[-1].append_bb(list(bounding))
                                 cropped = img[bb[1]:bb[3], bb[0]:bb[2], :]
                                 scaled = misc.imresize(cropped, (args.image_size, args.image_size), interp='bilinear')
                                 nrof_successfully_aligned += 1

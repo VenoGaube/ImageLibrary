@@ -1,6 +1,7 @@
 from tkinter import *
 from pathlib import Path
 from shutil import copy2, SameFileError
+from json import JSONEncoder
 from os.path import normpath, basename
 
 import cv2
@@ -8,7 +9,9 @@ import os
 import pathlib
 import secrets
 import tkinter as tk
+import json
 import numpy as np
+import jsonpickle
 
 # file imports
 import findImages
@@ -235,11 +238,11 @@ class OpenWindow:
 
 class ImageObject:
     def __init__(self, path_to_image):
-        self.path_to_image = Path(path_to_image)
-        self.folders = []
-        self.boundingbox = []
-        self.clusterID = []
-        self.embedding = []
+        self.path_to_image = str(path_to_image)
+        self.folders = list()
+        self.boundingbox = list()
+        self.clusterID = list()
+        self.embedding = list()
 
     def append_to_folder(self, folder_name):
         self.folders.append(folder_name)
@@ -252,6 +255,23 @@ class ImageObject:
 
     def set_cluster_id(self, clusterID):
         self.clusterID = clusterID
+
+    def reprJSON(self):
+        return dict(path_to_image=self.path_to_image, folders=self.folders, boundingbox=self.boundingbox, clusterID=self.clusterID, embedding=self.embedding)
+
+
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
+
+def ComplexHandler(Obj):
+    if hasattr(Obj, 'jsonable'):
+        return Obj.jsonable()
+    else:
+        raise TypeError('Object of type %s with value of %s is not JSON serializable' % (type(Obj), repr(Obj)))
 
 
 def folder_check(imageInstance, folder_name):
@@ -300,15 +320,7 @@ def remove_duplicates(folder_list):
 
 
 def call_commands():
-    """
-    # Train Command
-    print('\rResizing found images.')
-    findImages.resize_images(str(path_train_raw))
-    print("\rLoading Train Command")
-    arguments_train_aligned = AlignArguments(path_train_raw, path_train_aligned)
-    align_dataset_mtcnn.main(arguments_train_aligned)
-    # print("konec 1. command")
-    """
+
     # Test Command
     print('\rResizing found images.')
     findImages.resize_images(str(path_test_raw))
@@ -323,47 +335,49 @@ def call_commands():
     encodings.main(arguments_classifier)
     # print("konec Encoding command")
 
-    """
-    # Train Command
-    print("\rLoading Classifier TRAIN Command")
-    arguments_classifier = ClassifyArguments(path_train_aligned, 'TRAIN')
-    classifier.main(arguments_classifier)
-    # print("konec 3. command")
-    """
-
     # Classify Command
     print("\rLoading Classifier CLASSIFY Command")
     arguments_classifier = ClassifyArguments(path_test_aligned, 'CLASSIFY')
     classifier.main(arguments_classifier)
     # print("konec 4. command")
-
-    resize = 10
-    for i in range(len(config.data)):
-        slika = cv2.imread(str(config.data[i].path_to_image))
-        for bb in range(len(config.data[i].boundingbox)):
-            x = config.data[i].boundingbox[bb][0]
-            y = config.data[i].boundingbox[bb][1]
-            w = config.data[i].boundingbox[bb][2]
-            h = config.data[i].boundingbox[bb][3]
-            cv2.rectangle(slika, (x, y), (x + w, y + h), (36, 255, 12), 1)
-            cv2.putText(slika, str(config.data[i].clusterID[bb]), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
-        cv2.imshow("Image", slika)
-        cv2.waitKey(0)
-
     """
+    # Write to JSON file
+    for i in range(len(config.data)):
+        config.data[i].boundingbox = {"boundingbox": config.data[i].boundingbox}
+        config.data[i].embedding = {"embedding": config.data[i].embedding}
+
+        jsonData = json.dumps(config.data[i], default=ComplexHandler)
+        with open('data.json', 'a') as outfile:
+            json.dump(jsonData, outfile)
+
+    # JSON file
+    f = open('data.json', "r")
+
+    # Reading from file
+    data = json.loads(f.read())
+
+    # Iterating through the json
+    # list
+    for i in data['py/object']:
+        print(i)
+
+        # Closing file
+    f.close()
+    """
+
     print("Waiting on results...")
     path_result = os.getcwd()
     path_origin = path_test_raw
-    
+
     for folder in Path(path_origin).iterdir():
         if folder.name == "gallery":
             path_origin = path_origin / folder
-    
+
     for folder in Path(path_result).iterdir():
         if folder.name == "results":
             path_result = path_result / folder
     # print(path_result, path_origin)
-    
+
     for folder in Path(path_result).iterdir():
         for pic in folder.iterdir():
             original_name, ending = os.path.splitext(pic)
@@ -381,13 +395,24 @@ def call_commands():
                     copy2(path_origin / img, path_result / folder)
                     break
                 print('\rLoading: \\', end="")
-    
-    # print("\rResults are in.")
-    # print()
-    # print("Collecting group images and creating folders")
 
-    # group_images(path_result)
-    """
+    print("\rResults are in.")
+    print()
+    print("Collecting group images and creating folders")
+
+    group_images(path_result)
+
+    for i in range(len(config.data)):
+        slika = cv2.imread(str(config.data[i].path_to_image))
+        for bb in range(len(config.data[i].boundingbox)):
+            x = int(config.data[i].boundingbox[bb][0])
+            y = int(config.data[i].boundingbox[bb][1])
+            w = int(config.data[i].boundingbox[bb][2])
+            h = int(config.data[i].boundingbox[bb][3])
+            cv2.rectangle(slika, (x, y), (x + w, y + h), (36, 255, 12), 1)
+            cv2.putText(slika, str(config.data[i].clusterID[bb]), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+        cv2.imshow("Image", slika)
+        cv2.waitKey(0)
 
     exit(0)
 
