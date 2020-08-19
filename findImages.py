@@ -75,7 +75,7 @@ def search_directory(rootdir, array):
                     copy2(rootdir, gallery_dir)
                     picture = {'path': Path(rootdir), 'date': image_date}
                     array.append(dict(picture))
-                    print('\rLoading: -', end="")
+                print('\rLoading: -', end="")
 
         else:
             for file in rootdir.iterdir():

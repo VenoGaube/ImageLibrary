@@ -43,21 +43,22 @@ class ImageObject:
     def __init__(self, path_to_image):
         self.path_to_image = str(path_to_image)
         self.folders = list()
-        self.boundingbox = list()
-        self.clusterID = list()
-        self.embedding = list()
+        self.boundingbox = {'bbox': list(), 'path': list(), 'cluster': list(), 'embedding': list()}
 
     def append_to_folder(self, folder_name):
         self.folders.append(folder_name)
 
     def append_bb(self, bounding_boxes):
-        self.boundingbox.append(bounding_boxes)
+        self.boundingbox["bbox"].append(bounding_boxes)
 
-    def append_embedding(self, embedding):
-        self.embedding.append(embedding)
+    def append_path(self, path):
+        self.boundingbox["path"].append(path)
 
-    def set_cluster_id(self, clusterID):
-        self.clusterID = clusterID
+    def append_cluster(self, cluster):
+        self.boundingbox["cluster"].append(cluster)
+
+    def append_emb(self, embedding):
+        self.boundingbox["embedding"].append(embedding)
 
 
 def main(args):
@@ -174,6 +175,10 @@ def main(args):
                                 # print('\rLoading: \\', end="")
                                 if args.detect_multiple_faces:
                                     output_filename_n = "{}_{}{}".format(filename_base, i, file_extension)
+                                    # Dodaj poleg boundingboxa še ime od patha tega obraza, da lahko pol cluster assignaš
+                                    config.data[-1].append_path(output_filename_n)
+                                    config.data[-1].append_cluster(99999)
+                                    config.data[-1].append_emb(list())
                                 else:
                                     output_filename_n = "{}{}".format(filename_base, file_extension)
                                 misc.imsave(output_filename_n, scaled)

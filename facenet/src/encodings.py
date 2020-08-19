@@ -49,21 +49,22 @@ class ImageObject:
     def __init__(self, path_to_image):
         self.path_to_image = str(path_to_image)
         self.folders = list()
-        self.boundingbox = list()
-        self.clusterID = list()
-        self.embedding = list()
+        self.boundingbox = {'bbox': list(), 'path': list(), 'cluster': list(), 'embedding': list()}
 
     def append_to_folder(self, folder_name):
         self.folders.append(folder_name)
 
     def append_bb(self, bounding_boxes):
-        self.boundingbox.append(list(bounding_boxes))
+        self.boundingbox["bbox"].append(bounding_boxes)
 
-    def append_embedding(self, embedding):
-        self.embedding.append(list(embedding))
+    def append_path(self, path):
+        self.boundingbox["path"].append(path)
 
-    def append_cluster_id(self, clusterID):
-        self.clusterID.append(clusterID)
+    def append_cluster(self, cluster):
+        self.boundingbox["cluster"].append(cluster)
+
+    def append_emb(self, embedding):
+        self.boundingbox["embedding"].append(embedding)
 
 
 class ImageEncoding:
@@ -159,11 +160,9 @@ def main(args):
                         cluster_name, ending = os.path.splitext(data)
                         config_name, konec = os.path.splitext(config.data[i].path_to_image)
                         name = cluster_name
-                        if name[-2] == '_':
-                            name = str(name[:-2])
-                        data = name
-                        if Path(config_name).stem == Path(data).stem:
-                            ImageObject.append_cluster_id(config.data[i], cluster)
+                        for j in range(len(config.data[i].boundingbox['path'])):
+                            if Path(config.data[i].boundingbox['path'][j]).stem.split('.')[0] == Path(name).stem:
+                                config.data[i].boundingbox['cluster'][j] = cluster
 
             # set embedding
             for i in range(len(encodings)):
@@ -171,18 +170,15 @@ def main(args):
                     encodings_name, ending = os.path.splitext(encodings[i].path_to_image)
                     config_name, konec = os.path.splitext(config.data[j].path_to_image)
                     name = encodings_name
-                    if name[-2] == '_':
-                        name = str(name[:-2])
-                    data = name
-                    if Path(config_name).stem == Path(data).stem:
-                        ImageObject.append_embedding(config.data[j], list(encodings[i].encoding))
+                    for k in range(len(config.data[j].boundingbox['path'])):
+                        if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == Path(name).stem:
+                            config.data[j].boundingbox['embedding'][k] = list(encodings[i].encoding)
 
-            for cluster in range(len(clusters)):
-                for data in clusters[cluster]:
-                    for i in range(len(paths)):
-                        if str(data) == str(paths[i]):
-                            labels[i] = cluster
-                            break
+            for i in range(len(paths)):
+                for j in range(len(config.data)):
+                    for k in range(len(config.data[j].boundingbox['path'])):
+                        if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == Path(paths[i]).stem.split('.')[0]:
+                            labels[i] = config.data[j].boundingbox['cluster'][k]
 
             if args.mode == 'TRAIN':
                 # Train classifier

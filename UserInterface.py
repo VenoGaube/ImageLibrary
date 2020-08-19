@@ -240,24 +240,25 @@ class ImageObject:
     def __init__(self, path_to_image):
         self.path_to_image = str(path_to_image)
         self.folders = list()
-        self.boundingbox = list()
-        self.clusterID = list()
-        self.embedding = list()
+        self.boundingbox = {'bbox': list(), 'path': list(), 'cluster': list(), 'embedding': list()}
 
     def append_to_folder(self, folder_name):
         self.folders.append(folder_name)
 
     def append_bb(self, bounding_boxes):
-        self.boundingbox.append(bounding_boxes)
+        self.boundingbox["bbox"].append(bounding_boxes)
 
-    def append_embedding(self, embedding):
-        self.embedding.append(embedding)
+    def append_path(self, path):
+        self.boundingbox["path"].append(path)
 
-    def set_cluster_id(self, clusterID):
-        self.clusterID = clusterID
+    def append_cluster(self, cluster):
+        self.boundingbox["cluster"].append(cluster)
+
+    def append_emb(self, embedding):
+        self.boundingbox["embedding"].append(embedding)
 
     def reprJSON(self):
-        return dict(path_to_image=self.path_to_image, folders=self.folders, boundingbox=self.boundingbox, clusterID=self.clusterID, embedding=self.embedding)
+        return dict(path_to_image=self.path_to_image, folders=self.folders, boundingbox=self.boundingbox)
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -365,7 +366,6 @@ def call_commands():
     f.close()
     """
 
-    print("Waiting on results...")
     path_result = os.getcwd()
     path_origin = path_test_raw
 
@@ -377,7 +377,7 @@ def call_commands():
         if folder.name == "results":
             path_result = path_result / folder
     # print(path_result, path_origin)
-
+    """
     for folder in Path(path_result).iterdir():
         for pic in folder.iterdir():
             original_name, ending = os.path.splitext(pic)
@@ -395,34 +395,37 @@ def call_commands():
                     copy2(path_origin / img, path_result / folder)
                     break
                 print('\rLoading: \\', end="")
-
-    print("\rResults are in.")
+    """
     print()
     print("Collecting group images and creating folders")
 
     group_images(path_result)
     for i in range(len(config.data)):
         slika = cv2.imread(str(config.data[i].path_to_image))
-        if len(config.data[i].clusterID) < 1:
+        if len(config.data[i].boundingbox['cluster']) < 1:
             continue
-        if len(config.data[i].boundingbox) < 1:
+        if len(config.data[i].boundingbox['bbox']) < 1:
             continue
-        if len(config.data[i].clusterID) <= len(config.data[i].boundingbox):
-            for j in range(len(config.data[i].clusterID)):
-                x = int(config.data[i].boundingbox[j][0])
-                y = int(config.data[i].boundingbox[j][1])
-                w = int(config.data[i].boundingbox[j][2])
-                h = int(config.data[i].boundingbox[j][3])
+        if len(config.data[i].boundingbox['cluster']) <= len(config.data[i].boundingbox['bbox']):
+            for j in range(len(config.data[i].boundingbox['cluster'])):
+                if config.data[i].boundingbox['cluster'][j] == 99999:
+                    continue
+                x = int(config.data[i].boundingbox['bbox'][j][0])
+                y = int(config.data[i].boundingbox['bbox'][j][1])
+                w = int(config.data[i].boundingbox['bbox'][j][2])
+                h = int(config.data[i].boundingbox['bbox'][j][3])
                 cv2.rectangle(slika, (x, y), (w, h), (36, 255, 12), 1)
-                cv2.putText(slika, str(config.data[i].clusterID[j]), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+                cv2.putText(slika, str(config.data[i].boundingbox['cluster'][j]), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
         else:
-            for j in range(len(config.data[i].boundingbox)):
-                x = int(config.data[i].boundingbox[j][0])
-                y = int(config.data[i].boundingbox[j][1])
-                w = int(config.data[i].boundingbox[j][2])
-                h = int(config.data[i].boundingbox[j][3])
+            for j in range(len(config.data[i].boundingbox['cluster'])):
+                if config.data[i].boundingbox['cluster'][j] == 99999:
+                    continue
+                x = int(config.data[i].boundingbox['bbox'][j][0])
+                y = int(config.data[i].boundingbox['bbox'][j][1])
+                w = int(config.data[i].boundingbox['bbox'][j][2])
+                h = int(config.data[i].boundingbox['bbox'][j][3])
                 cv2.rectangle(slika, (x, y), (w, h), (36, 255, 12), 1)
-                cv2.putText(slika, str(config.data[i].clusterID[j]), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+                cv2.putText(slika, str(config.data[i].boundingbox['cluster'][j]), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
         cv2.imshow("Image", slika)
         cv2.waitKey(0)
 
