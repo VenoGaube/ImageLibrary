@@ -56,20 +56,23 @@ def search_directory(rootdir, array):
                 image_date, orientation = get_date(rootdir)
                 image = Image.open(rootdir)
                 if orientation == 3:
+                    exif = image.info['exif']
                     image = image.rotate(180, expand=True)
-                    image.save(rootdir)
+                    image.save(rootdir, 'JPEG', exif=exif)
                     image.close()
                 elif orientation == 6:
+                    exif = image.info['exif']
                     image = image.rotate(270, expand=True)
-                    image.save(rootdir)
+                    image.save(rootdir, 'JPEG', exif=exif)
                     image.close()
                 elif orientation == 8:
+                    exif = image.info['exif']
                     image = image.rotate(90, expand=True)
-                    image.save(rootdir)
+                    image.save(rootdir, 'JPEG', exif=exif)
                     image.close()
 
                 # Če smo dobili nek datum in čas potem gremo v if, drugače to sliko popolnoma preskočimo
-                if image_date is not None:
+                if image_date is not None or orientation is not None:
                     # Dodamo sliko in podatke v array
                     gallery_dir = path_gallery
                     copy2(rootdir, gallery_dir)
@@ -125,6 +128,7 @@ def resize_images(path):
         if slika.name.endswith(".txt"):
             continue
         resized = Image.open(slika)
+        exif = resized.info['exif']
         shape = resized.size
         shape = list(shape)
         shape[0] = int(shape[0] * resize)
@@ -132,5 +136,5 @@ def resize_images(path):
         print('\rLoading: /', end="")
         resized_img = resized.resize(tuple(shape), Image.ANTIALIAS)
         print('\rLoading: -', end="")
-        resized_img.save(slika)
+        resized_img.save(slika, 'JPEG', exif=exif)
         print('\rLoading: \\', end="")
