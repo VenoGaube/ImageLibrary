@@ -1,3 +1,4 @@
+import shutil
 from tkinter import *
 from pathlib import Path
 from shutil import copy2, SameFileError
@@ -21,11 +22,8 @@ import facenet.src.classifier as classifier
 import facenet.src.encodings as encodings
 
 
-# TODO: Poglej kako se dela ko je več obrazov na sliki in dodaj to še v dodajanje v te folderje za multi ljudi.
-
-
 def path_finder(path):
-    global path_train_raw, path_train_aligned, path_test_raw, path_test_aligned, path_model, path_classifier_pickle
+    global path_test_raw, path_test_aligned, path_model, path_classifier_pickle
     for element in Path(path).iterdir():
         try:
             if element.is_file():
@@ -36,22 +34,14 @@ def path_finder(path):
                 else:
                     continue
             else:
-                if element.name == "train_raw":
-                    path_train_raw = Path(path) / Path(element.name)
-                elif element.name == "train_aligned":
-                    path_train_aligned = Path(path) / Path(element.name)
-                elif element.name == "test_raw":
+                if element.name == "test_raw":
                     path_test_raw = Path(path) / Path(element.name)
                 elif element.name == "test_aligned":
                     path_test_aligned = Path(path) / Path(element.name)
                 path_finder(element)
         except WindowsError:
             pass
-    # print(path_train_raw, path_train_aligned, path_test_raw, path_test_aligned, path_model, path_classifier_pickle)
 
-
-path_train_raw = ""  # "\\facenet\\data\\images\\train_raw\\"
-path_train_aligned = ""  # "\\facenet\\data\\images\\train_aligned\\"
 
 path_test_raw = ""  # "\\facenet\\data\\images\\test_raw\\"
 path_test_aligned = ""  # "\\facenet\\data\\images\\test_aligned\\"
@@ -71,7 +61,7 @@ class AlignArguments:
         self.margin = 32
         self.random_order = True
         self.detect_multiple_faces = True
-        self.gpu_memory_fraction = 0.90
+        self.gpu_memory_fraction = 0.60
 
 
 class ClassifyArguments:
@@ -256,23 +246,6 @@ class ImageObject:
 
     def append_emb(self, embedding):
         self.boundingbox["embedding"].append(embedding)
-
-    def reprJSON(self):
-        return dict(path_to_image=self.path_to_image, folders=self.folders, boundingbox=self.boundingbox)
-
-
-class NumpyEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        return json.JSONEncoder.default(self, obj)
-
-
-def ComplexHandler(Obj):
-    if hasattr(Obj, 'jsonable'):
-        return Obj.jsonable()
-    else:
-        raise TypeError('Object of type %s with value of %s is not JSON serializable' % (type(Obj), repr(Obj)))
 
 
 def folder_check(imageInstance, folder_name):
@@ -487,10 +460,19 @@ def check_number_of_images(path):
                 print("Potrebujemo še %d" % razlika + " slik od osebe: %s." % folder.name)
 
 
+def delete_create():
+    gallery = "gallery"
+    raw_gallery = os.path.join(path_test_raw, gallery)
+    aliged_gallery = os.path.join(path_test_aligned, gallery)
+
+    shutil.rmtree(raw_gallery)
+    shutil.rmtree(aliged_gallery)
+    os.mkdir(raw_gallery)
+    os.mkdir(aliged_gallery)
+
+
 path_finder(pathlib.PurePath(os.getcwd()))
-# root = Tk()
-# check_number_of_images(str(path_train_raw))
-# root.destroy()
+delete_create()
 vse_slike = findImages.get_images()
 call_commands()
 loop = 0  # na vsak interval pogleda sliko, da ne gleda slik ene za drugo

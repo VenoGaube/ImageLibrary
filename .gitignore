@@ -1,5 +1,5 @@
 /venv
-# facenet/data/images
+facenet/data/images
 facenet/models/my_classifier.pkl
 /results
 
@@ -96,6 +96,3 @@ ENV/
 
 # Rope project settings
 .ropeproject
-
-# PyCharm project setting
-.idea

@@ -66,23 +66,11 @@ class ImageObject:
     def append_emb(self, embedding):
         self.boundingbox["embedding"].append(embedding)
 
+
 class ImageEncoding:
     def __init__(self, path_to_image, encoding):
         self.path_to_image = str(path_to_image)
         self.encoding = encoding
-
-
-def check_if_multi(image_path):
-    imageObjects = config.multiples
-    for i in range(len(imageObjects)):
-        original_name, ending = os.path.splitext(imageObjects[i].path_to_image)
-        name = original_name
-        if name[:-1] == '_':
-            name = str(name[:-2])
-        name = basename(normpath(name))
-        if name == Path(image_path).stem:
-            return imageObjects[i]
-    return None
 
 
 def euclideanMeanDistance(x, y):
@@ -180,28 +168,15 @@ def main(args):
                     results_path = os.path.join(results_path, 'results')
                 print(results_path)
                 for i in range(len(best_class_indices)):
-                    # print('%4d %s %s: %.3f' % (i, paths[i], class_names[best_class_indices[i]],
-                    # best_class_probabilities[i])) Vsako sliko dodamo not v array in če se isti stem pojavi več kot
-                    # 1 krat, imamo multiple face sliko. Potem ta array obdelamo na koncu te funkcije pa dodamo vse
-                    # te multiple slike v array multiples, kot prej. In to je to.
-                    original_name, ending = os.path.splitext(paths[i])
-                    name = original_name
-                    name = str(name[:-2])
-                    path_img = name + ending
-                    imgObject = check_if_multi(Path(path_img))
                     if float(best_class_probabilities[i]) > 0.850:
-                        if imgObject is not None:
-                            for element in config.final_multi:
-                                if Path(element.path_to_image).stem == Path(imgObject.path_to_image).stem:
-                                    ImageObject.append_to_folder(imgObject, class_names[best_class_indices[i]])
-                                    break
-                            ImageObject.append_to_folder(imgObject, class_names[best_class_indices[i]])
-                            config.final_multi.append(imgObject)
-                        new_dir = Path(results_path) / Path(str(class_names[best_class_indices[i]]))
-                        pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
-                        copy2(str(paths[i]), new_dir)
-                # accuracy = np.mean(np.equal(best_class_indices, labels))
-                # print('Accuracy: %.3f' % accuracy)
+                        try:
+                            new_dir = Path(results_path) / Path(str(class_names[best_class_indices[i]]))
+                            pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
+                            copy2(str(paths[i]), new_dir)
+                        except IndexError:
+                            pass
+                accuracy = np.mean(np.equal(best_class_indices, labels))
+                print('Accuracy: %.3f' % accuracy)
 
 
 def split_dataset(dataset, min_nrof_images_per_class, nrof_train_images_per_class):

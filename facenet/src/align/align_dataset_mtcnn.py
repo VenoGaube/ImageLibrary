@@ -24,6 +24,9 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+
+import cv2
+import scipy
 from scipy import misc
 from pathlib import Path
 
@@ -37,6 +40,8 @@ import facenet.src.align.detect_face as align
 import random
 import progressbar
 import config
+
+import matplotlib.pyplot as plt
 
 
 class ImageObject:
@@ -108,6 +113,9 @@ def main(args):
             for image_path in cls.image_paths:
                 if Path(image_path).stem == "text":
                     continue
+                #slika = cv2.imread(str(image_path))
+                #cv2.imshow("Image", slika)
+                #cv2.waitKey(0)
                 nrof_images_total += 1
                 filename = os.path.splitext(os.path.split(image_path)[1])[0]
                 output_filename = os.path.join(output_class_dir, filename + '.png')
@@ -126,6 +134,7 @@ def main(args):
                         if img.ndim == 2:
                             img = fn.to_rgb(img)
                         img = img[:, :, 0:3]
+                        scipy.misc.imsave(image_path, img)
 
                         bounding_boxes, _ = align.detect_face(img, minsize, pnet, rnet, onet, threshold,
                                                               factor)
