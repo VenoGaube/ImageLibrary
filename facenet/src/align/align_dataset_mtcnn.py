@@ -131,7 +131,7 @@ def main(args):
                         if img.ndim == 2:
                             img = fn.to_rgb(img)
                         img = img[:, :, 0:3]
-                        # scipy.misc.imsave(image_path, img)
+                        scipy.misc.imsave(image_path, img)
 
                         bounding_boxes, _ = align.detect_face(img, minsize, pnet, rnet, onet, threshold,
                                                               factor)

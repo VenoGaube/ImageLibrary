@@ -8,6 +8,7 @@ import tkinter as tk
 import cv2
 import exifread
 import pathlib
+import numpy as np
 
 
 def path_finder(path):
@@ -130,14 +131,25 @@ def resize_images(path):
             continue
         if slika.name.endswith(".txt"):
             continue
-        resized = Image.open(slika)
-        exif = resized.info['exif']
-        shape = resized.size
-        shape = list(shape)
-        shape[0] = int(shape[0] * resize)
-        shape[1] = int(shape[1] * resize)
+        resized = cv2.imread(str(slika), cv2.IMREAD_COLOR)
+        shape = resized.shape
+        height = int(shape[0] * resize)
+        width = int(shape[1] * resize)
+        dim = (width, height)
         print('\rLoading: /', end="")
-        resized_img = resized.resize(tuple(shape), Image.ANTIALIAS)
+        resized_img = cv2.resize(resized, dim, interpolation=cv2.IMREAD_COLOR)
         print('\rLoading: -', end="")
-        resized_img.save(slika, 'JPEG', exif = exif)
+        cv2.imwrite(str(slika), resized_img)
+        orientation = get_rotation(str(slika))
+        img = Image.open(str(slika))
+        if orientation == 3:
+            img = img.rotate(180, expand=True)
+            cv2.imwrite(str(slika), img)
+        elif orientation == 6:
+            img = img.rotate(270, expand=True)
+            cv2.imwrite(str(slika), img)
+        elif orientation == 8:
+            img = img.rotate(-90, expand=True)
+            cv2.imwrite(str(slika), img)
+        img.close()
         print('\rLoading: \\', end="")
