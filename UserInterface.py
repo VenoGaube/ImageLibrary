@@ -462,11 +462,18 @@ def check_number_of_images(path):
 
 def delete_create():
     gallery = "gallery"
+    results = "results"
     raw_gallery = os.path.join(path_test_raw, gallery)
     aliged_gallery = os.path.join(path_test_aligned, gallery)
+    results_delete = os.path.join(os.getcwd(), results)
 
-    shutil.rmtree(raw_gallery)
-    shutil.rmtree(aliged_gallery)
+    if os.path.isdir(results_delete):
+        shutil.rmtree(results_delete)
+    if os.path.isdir(raw_gallery):
+        shutil.rmtree(raw_gallery)
+    if os.path.isdir(aliged_gallery):
+        shutil.rmtree(aliged_gallery)
+
     os.mkdir(raw_gallery)
     os.mkdir(aliged_gallery)
 

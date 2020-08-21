@@ -76,7 +76,7 @@ def search_directory(rootdir, array):
                         image = image.rotate(270, expand=True)
                     elif orientation == 8:
                         exif = image.info['exif']
-                        image = image.rotate(90, expand=True)
+                        image = image.rotate(-90, expand=True)
 
                     image.save(gallery_image, 'JPEG', exif=exif)
                     picture = {'path': Path(gallery_image), 'date': image_date}
@@ -139,5 +139,5 @@ def resize_images(path):
         print('\rLoading: /', end="")
         resized_img = resized.resize(tuple(shape), Image.ANTIALIAS)
         print('\rLoading: -', end="")
-        resized_img.save(slika, 'JPEG', exif=exif)
+        resized_img.save(slika, 'JPEG', exif = exif)
         print('\rLoading: \\', end="")
