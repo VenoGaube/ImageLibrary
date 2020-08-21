@@ -65,20 +65,7 @@ def search_directory(rootdir, array):
                     gallery_image = os.path.join(path_gallery, str(image_name))
                     copy2(rootdir, path_gallery)
                     image = Image.open(gallery_image)
-                    orientation = get_rotation(gallery_image)
-
                     exif = image.info['exif']
-
-                    if orientation == 3:
-                        exif = image.info['exif']
-                        image = image.rotate(180, expand=True)
-                    elif orientation == 6:
-                        exif = image.info['exif']
-                        image = image.rotate(270, expand=True)
-                    elif orientation == 8:
-                        exif = image.info['exif']
-                        image = image.rotate(-90, expand=True)
-
                     image.save(gallery_image, 'JPEG', exif=exif)
                     picture = {'path': Path(gallery_image), 'date': image_date}
                     array.append(dict(picture))
@@ -131,25 +118,14 @@ def resize_images(path):
             continue
         if slika.name.endswith(".txt"):
             continue
-        resized = cv2.imread(str(slika), cv2.IMREAD_COLOR)
-        shape = resized.shape
-        height = int(shape[0] * resize)
-        width = int(shape[1] * resize)
-        dim = (width, height)
+        resized = Image.open(slika)
+        exif = resized.info['exif']
+        shape = resized.size
+        shape = list(shape)
+        shape[0] = int(shape[0] * resize)
+        shape[1] = int(shape[1] * resize)
         print('\rLoading: /', end="")
-        resized_img = cv2.resize(resized, dim, interpolation=cv2.IMREAD_COLOR)
+        resized_img = resized.resize(tuple(shape), Image.ANTIALIAS)
         print('\rLoading: -', end="")
-        cv2.imwrite(str(slika), resized_img)
-        orientation = get_rotation(str(slika))
-        img = Image.open(str(slika))
-        if orientation == 3:
-            img = img.rotate(180, expand=True)
-            cv2.imwrite(str(slika), img)
-        elif orientation == 6:
-            img = img.rotate(270, expand=True)
-            cv2.imwrite(str(slika), img)
-        elif orientation == 8:
-            img = img.rotate(-90, expand=True)
-            cv2.imwrite(str(slika), img)
-        img.close()
+        resized_img.save(slika, 'JPEG', exif=exif)
         print('\rLoading: \\', end="")

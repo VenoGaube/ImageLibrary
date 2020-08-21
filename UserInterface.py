@@ -4,6 +4,7 @@ from pathlib import Path
 from shutil import copy2, SameFileError
 from json import JSONEncoder
 from os.path import normpath, basename
+from PIL import Image
 
 import cv2
 import os
@@ -372,13 +373,16 @@ def call_commands():
     print()
     print("Collecting group images and creating folders")
 
-    group_images(path_result)
+    # group_images(path_result)
+
     for i in range(len(config.data)):
         slika = cv2.imread(str(config.data[i].path_to_image))
+        display_flag = 0
         if len(config.data[i].boundingbox['cluster']) < 1:
             continue
-        if len(config.data[i].boundingbox['bbox']) < 1:
+        if len(config.data[i].boundingbox['bbox']) < 1 or (len(config.data[i].boundingbox['bbox']) == 1 and config.data[i].boundingbox['bbox'][0] == 99999):
             continue
+
         if len(config.data[i].boundingbox['cluster']) <= len(config.data[i].boundingbox['bbox']):
             for j in range(len(config.data[i].boundingbox['cluster'])):
                 if config.data[i].boundingbox['cluster'][j] == 99999:
@@ -389,6 +393,7 @@ def call_commands():
                 h = int(config.data[i].boundingbox['bbox'][j][3])
                 cv2.rectangle(slika, (x, y), (w, h), (36, 255, 12), 1)
                 cv2.putText(slika, str(config.data[i].boundingbox['cluster'][j]), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+                display_flag = 1
         else:
             for j in range(len(config.data[i].boundingbox['cluster'])):
                 if config.data[i].boundingbox['cluster'][j] == 99999:
@@ -399,8 +404,10 @@ def call_commands():
                 h = int(config.data[i].boundingbox['bbox'][j][3])
                 cv2.rectangle(slika, (x, y), (w, h), (36, 255, 12), 1)
                 cv2.putText(slika, str(config.data[i].boundingbox['cluster'][j]), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
-        cv2.imshow("Image", slika)
-        cv2.waitKey(0)
+                display_flag = 1
+        if display_flag:
+            cv2.imshow("Image", slika)
+            cv2.waitKey(0)
 
     exit(0)
 

@@ -25,10 +25,15 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import io
+
 import cv2
+import exifread
 import scipy
+from matplotlib import cm
 from scipy import misc
 from pathlib import Path
+from PIL import Image
 
 import sys
 import os
@@ -40,6 +45,7 @@ import facenet.src.align.detect_face as align
 import random
 import progressbar
 import config
+import findImages
 
 import matplotlib.pyplot as plt
 
@@ -66,6 +72,15 @@ class ImageObject:
         self.boundingbox["embedding"].append(embedding)
 
 
+def get_rotation(img_path):
+    f = open(img_path, 'rb')
+    # Return Exif tags
+    tags = exifread.process_file(f)
+    if "Image Orientation" in tags or "Orientation" in tags:
+        orientation = tags["Image Orientation"].values[0]
+        return orientation
+
+
 def main(args):
     # sleep(random.random())  # Zakaj je to tu?
     output_dir = os.path.expanduser(args.output_dir)
@@ -83,7 +98,6 @@ def main(args):
         sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
         with sess.as_default():
             pnet, rnet, onet = align.create_mtcnn(sess, None)
-
     minsize = 20  # minimum size of face
     threshold = [0.6, 0.7, 0.7]  # three steps's threshold
     factor = 0.709  # scale factor
@@ -106,7 +120,8 @@ def main(args):
                 os.makedirs(output_class_dir)
                 if args.random_order:
                     random.shuffle(cls.image_paths)
-            bar = progressbar.ProgressBar(maxval=len(cls.image_paths),widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+            bar = progressbar.ProgressBar(maxval=len(cls.image_paths),
+                                          widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
             bar.start()
             j = 0
 
@@ -119,7 +134,7 @@ def main(args):
                 # print(image_path)
                 if not os.path.exists(output_filename):
                     try:
-                        img = misc.imread(image_path)
+                        img = cv2.imread(image_path)
                     except (IOError, ValueError, IndexError) as e:
                         errorMessage = '{}: {}'.format(image_path, e)
                         print(errorMessage)
@@ -130,9 +145,18 @@ def main(args):
                             continue
                         if img.ndim == 2:
                             img = fn.to_rgb(img)
-                        img = img[:, :, 0:3]
-                        scipy.misc.imsave(image_path, img)
 
+                        orientation = get_rotation(image_path)
+                        if orientation == 3:
+                            img = cv2.rotate(img, cv2.ROTATE_180)
+                        elif orientation == 6:
+                            img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+                        elif orientation == 8:
+                            img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+                        # scipy.misc.imsave(image_path, img, format='JPEG')
+
+                        img = img[:, :, 0:3]
+                        cv2.imwrite(str(image_path), img)
                         bounding_boxes, _ = align.detect_face(img, minsize, pnet, rnet, onet, threshold,
                                                               factor)
                         nrof_faces = bounding_boxes.shape[0]
