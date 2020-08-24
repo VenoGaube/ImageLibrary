@@ -157,6 +157,7 @@ def main(args):
 
                         img = img[:, :, 0:3]
                         cv2.imwrite(str(image_path), img)
+                        img = misc.imread(image_path)
                         bounding_boxes, _ = align.detect_face(img, minsize, pnet, rnet, onet, threshold,
                                                               factor)
                         nrof_faces = bounding_boxes.shape[0]
