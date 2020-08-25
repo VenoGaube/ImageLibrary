@@ -69,16 +69,17 @@ class ClassifyArguments:
     def __init__(self, path_aligned_folder, mode):
         self.use_split_dataset = False
         self.data_dir = str(path_aligned_folder)
+        self.test_data_dir = str(path_aligned_folder)
         self.mode = mode
         self.model = str(path_model)
         self.classifier_filename = str(path_classifier_pickle)
         # Vsi ti spodaj imajo nek default value znotraj funckije parse_arguments v classifier.py
         self.seed = 666
-        self.min_nrof_images_per_class = 1
-        self.nrof_train_images_per_class = 20
-        self.batch_size = 45
+        self.min_nrof_images_per_class = 20
+        self.nrof_train_images_per_class = 10
+        self.batch_size = 90
         self.image_size = 160
-        self.test_data_dir = str(path_aligned_folder)
+
 
 
 class MultipleFacesFrame:
