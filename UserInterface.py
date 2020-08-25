@@ -58,11 +58,11 @@ class AlignArguments:
     def __init__(self, path_raw_folder, path_aligned_folder):
         self.input_dir = str(path_raw_folder)
         self.output_dir = str(path_aligned_folder)
-        self.image_size = 250
-        self.margin = 32
+        self.image_size = 182
+        self.margin = 44
         self.random_order = True
         self.detect_multiple_faces = True
-        self.gpu_memory_fraction = 0.60
+        self.gpu_memory_fraction = 1.0
 
 
 class ClassifyArguments:
