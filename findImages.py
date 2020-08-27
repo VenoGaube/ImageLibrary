@@ -55,20 +55,24 @@ def search_directory(rootdir, array):
         if rootdir.is_file():
             # če se file konča z .jpeg ali .jpg je kategoriziran kot slika
             if rootdir.name.endswith(".jpeg") or rootdir.name.endswith(".JPEG") or rootdir.name.endswith(".jpg")\
-                    or rootdir.name.endswith(".JPG"): # or rootdir.name.endswith(".png") or rootdir.name.endswith(".PNG"):
+                    or rootdir.name.endswith(".JPG") or rootdir.name.endswith(".png") or rootdir.name.endswith(".PNG"):
                 # Pridobimo čas in datum iz meta podatkov
                 image_date = get_date(rootdir)
                 # Če smo dobili nek datum in čas potem gremo v if, drugače to sliko popolnoma preskočimo
-                if image_date is not None:
-                    # Dodamo sliko in podatke v array
-                    image_name = os.path.basename(rootdir)
-                    gallery_image = os.path.join(path_gallery, str(image_name))
-                    copy2(rootdir, path_gallery)
-                    image = Image.open(gallery_image)
+                # if image_date is not None:
+                # Dodamo sliko in podatke v array
+                image_name = os.path.basename(rootdir)
+                gallery_image = os.path.join(path_gallery, str(image_name))
+                copy2(rootdir, path_gallery)
+                image = Image.open(gallery_image)
+                try:
                     exif = image.info['exif']
                     image.save(gallery_image, 'JPEG', exif=exif)
-                    picture = {'path': Path(gallery_image), 'date': image_date}
-                    array.append(dict(picture))
+                except KeyError:
+                    image.save(gallery_image, 'JPEG')
+                    pass
+                picture = {'path': Path(gallery_image), 'date': image_date}
+                array.append(dict(picture))
                 print('\rLoading: -', end="")
 
         else:
@@ -119,13 +123,23 @@ def resize_images(path):
         if slika.name.endswith(".txt"):
             continue
         resized = Image.open(slika)
-        exif = resized.info['exif']
+        flag = False
+        try:
+            exif = resized.info['exif']
+            flag = True
+        except KeyError:
+            pass
         shape = resized.size
         shape = list(shape)
+        if shape[0] < 1000 and shape[1] < 1000:
+            continue
         shape[0] = int(shape[0] * resize)
         shape[1] = int(shape[1] * resize)
         print('\rLoading: /', end="")
         resized_img = resized.resize(tuple(shape), Image.ANTIALIAS)
         print('\rLoading: -', end="")
-        resized_img.save(slika, 'JPEG', exif=exif)
+        if flag:
+            resized_img.save(slika, 'JPEG', exif=exif)
+        else:
+            resized_img.save(slika, 'JPEG')
         print('\rLoading: \\', end="")

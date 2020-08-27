@@ -86,7 +86,7 @@ def get_image_paths_and_labels(dataset):
 
     for i in range(len(dataset)):
         image_paths_flat += dataset[i].image_paths
-        labels_flat += [i] * len(dataset[i].image_paths)
+        labels_flat += [99999] * len(dataset[i].image_paths)
     return image_paths_flat, labels_flat
 
 

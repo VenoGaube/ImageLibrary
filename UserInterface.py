@@ -28,7 +28,7 @@ def path_finder(path):
     for element in Path(path).iterdir():
         try:
             if element.is_file():
-                if element.name == "20180402-114759.pb":
+                if element.name == "20170512-110547.pb":
                     path_model = Path(path) / Path(element.name)
                 elif element.name == "my_classifier.pkl":
                     path_classifier_pickle = Path(path) / Path(element.name)
@@ -58,8 +58,8 @@ class AlignArguments:
     def __init__(self, path_raw_folder, path_aligned_folder):
         self.input_dir = str(path_raw_folder)
         self.output_dir = str(path_aligned_folder)
-        self.image_size = 182
-        self.margin = 44
+        self.image_size = 160
+        self.margin = 25
         self.random_order = True
         self.detect_multiple_faces = True
         self.gpu_memory_fraction = 1.0
@@ -75,11 +75,10 @@ class ClassifyArguments:
         self.classifier_filename = str(path_classifier_pickle)
         # Vsi ti spodaj imajo nek default value znotraj funckije parse_arguments v classifier.py
         self.seed = 666
-        self.min_nrof_images_per_class = 20
-        self.nrof_train_images_per_class = 10
+        self.min_nrof_images_per_class = 1
+        self.nrof_train_images_per_class = 1
         self.batch_size = 90
         self.image_size = 160
-
 
 
 class MultipleFacesFrame:
@@ -303,19 +302,12 @@ def call_commands():
     print("\rLoading Test Command")
     arguments_train_aligned = AlignArguments(path_test_raw, path_test_aligned)
     align_dataset_mtcnn.main(arguments_train_aligned)
-    # print("konec 2. command")
 
     # Encoding Command
-    print("\rLoading Encoder and Train Command")
+    print("\rLoading Encoder and Classify Command")
     arguments_classifier = ClassifyArguments(path_test_aligned, 'TRAIN')
     encodings.main(arguments_classifier)
-    # print("konec Encoding command")
 
-    # Classify Command
-    print("\rLoading Classifier CLASSIFY Command")
-    arguments_classifier = ClassifyArguments(path_test_aligned, 'CLASSIFY')
-    classifier.main(arguments_classifier)
-    # print("konec 4. command")
     """
     # Write to JSON file
     for i in range(len(config.data)):
@@ -393,7 +385,7 @@ def call_commands():
                 w = int(config.data[i].boundingbox['bbox'][j][2])
                 h = int(config.data[i].boundingbox['bbox'][j][3])
                 cv2.rectangle(slika, (x, y), (w, h), (36, 255, 12), 1)
-                cv2.putText(slika, str(config.data[i].boundingbox['cluster'][j]), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+                cv2.putText(slika, str(config.data[i].boundingbox['cluster'][j]), (x, y + 25), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
                 display_flag = 1
         else:
             for j in range(len(config.data[i].boundingbox['cluster'])):
@@ -404,7 +396,7 @@ def call_commands():
                 w = int(config.data[i].boundingbox['bbox'][j][2])
                 h = int(config.data[i].boundingbox['bbox'][j][3])
                 cv2.rectangle(slika, (x, y), (w, h), (36, 255, 12), 1)
-                cv2.putText(slika, str(config.data[i].boundingbox['cluster'][j]), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+                cv2.putText(slika, str(config.data[i].boundingbox['cluster'][j]), (x, y + 25), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
                 display_flag = 1
         if display_flag:
             cv2.imshow("Image", slika)

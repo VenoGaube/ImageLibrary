@@ -26,7 +26,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from os.path import normpath, basename
+from sklearn.cluster import DBSCAN
+from imutils import build_montages
 
+import argparse
+import pickle
+import cv2
 import pathlib
 import config
 import progressbar
@@ -39,10 +44,14 @@ import sys
 import math
 import pickle
 import time
+import cv2
+
 from sklearn.svm import SVC
 from shutil import copy2
 from pathlib import Path
 from facenet.contributed import clustering as clustering
+from facenet.contributed import cluster as cluster
+
 
 
 class ImageObject:
@@ -73,6 +82,17 @@ class ImageEncoding:
         self.encoding = encoding
 
 
+class AlignArguments:
+    def __init__(self, path_raw_folder, path_aligned_folder):
+        self.input_dir = str(path_raw_folder)
+        self.output_dir = str(path_aligned_folder)
+        self.image_size = 182
+        self.margin = 44
+        self.random_order = True
+        self.detect_multiple_faces = True
+        self.gpu_memory_fraction = 1.0
+
+
 def check_if_multi(image_path):
     imageObjects = config.multiples
     for i in range(len(imageObjects)):
@@ -100,12 +120,8 @@ def main(args):
 
             if args.use_split_dataset:
                 dataset_tmp = facenet.get_dataset(args.data_dir)
-                train_set, test_set = split_dataset(dataset_tmp, args.min_nrof_images_per_class,
-                                                    args.nrof_train_images_per_class)
-                if args.mode == 'TRAIN':
-                    dataset = train_set
-                elif args.mode == 'CLASSIFY':
-                    dataset = test_set
+                train_set, test_set = split_dataset(dataset_tmp, args.min_nrof_images_per_class, args.nrof_train_images_per_class)
+                dataset = train_set
             else:
                 dataset = facenet.get_dataset(args.data_dir)
             # Check that there are at least one training image per class
@@ -156,6 +172,7 @@ def main(args):
             # set clusters
             for cluster in range(len(clusters)):
                 for data in clusters[cluster]:
+                    flag = False
                     for i in range(len(config.data)):
                         cluster_name, ending = os.path.splitext(data)
                         config_name, konec = os.path.splitext(config.data[i].path_to_image)
@@ -163,7 +180,10 @@ def main(args):
                         for j in range(len(config.data[i].boundingbox['path'])):
                             if Path(config.data[i].boundingbox['path'][j]).stem.split('.')[0] == Path(name).stem:
                                 config.data[i].boundingbox['cluster'][j] = cluster
-
+                                flag = True
+                                break
+                        if flag:
+                            break
             # set embedding
             for i in range(len(encodings)):
                 for j in range(len(config.data)):
@@ -196,22 +216,45 @@ def main(args):
                     pickle.dump((model, class_names), outfile)
                 print('Saved classifier model to file "%s"' % classifier_filename_exp)
 
-            """
-            results_path = os.getcwd()
-            if not os.path.exists('results'):
-                os.mkdir('results')
-                results_path = os.path.join(results_path, 'results')
-            else:
-                results_path = os.path.join(results_path, 'results')
+                # Classify images
+                print('Testing classifier')
+                with open(classifier_filename_exp, 'rb') as infile:
+                    (model, class_names) = pickle.load(infile)
 
-            for cluster in range(len(clusters)):
-                new_dir = Path(results_path) / Path(str(cluster))
-                if not os.path.exists(new_dir):
-                    os.mkdir(new_dir)
-                for element in range(len(clusters[cluster])):
-                    print(str(clusters[cluster][element]))
-                    copy2(str(clusters[cluster][element]), new_dir)
-            """
+                print('Loaded classifier model from file "%s"' % classifier_filename_exp)
+
+                predictions = model.predict_proba(emb_array)
+                best_class_indices = np.argmax(predictions, axis=1)
+                best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
+
+                results_path = os.getcwd()
+                if not os.path.exists('results'):
+                    os.mkdir('results')
+                    results_path = os.path.join(results_path, 'results')
+                else:
+                    results_path = os.path.join(results_path, 'results')
+                print(results_path)
+                for i in range(len(best_class_indices)):
+                    if float(best_class_probabilities[i]) > 0.750:
+                        try:
+                            new_dir = Path(results_path) / Path(str(class_names[best_class_indices[i]]))
+                            pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
+                            copy2(str(paths[i]), new_dir)
+                        except IndexError:
+                            pass
+                    else:
+                        flag = False
+                        for j in range(len(config.data)):
+                            for k in range(len(config.data[j].boundingbox["path"])):
+                                if Path(config.data[j].boundingbox["path"][k]).stem == Path(paths[i]).stem:
+                                    config.data[j].boundingbox["cluster"][k] = 99999
+                                    flag = True
+                                    break
+                            if flag:
+                                break
+                accuracy = np.mean(np.equal(best_class_indices, labels))
+                print('Accuracy: %.3f' % accuracy)
+
 
 def split_dataset(dataset, min_nrof_images_per_class, nrof_train_images_per_class):
     train_set = []

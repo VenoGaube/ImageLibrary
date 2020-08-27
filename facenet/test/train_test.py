@@ -152,7 +152,7 @@ class TrainTest(unittest.TestCase):
                 '--data_dir', self.dataset_dir,
                 '--model_def', 'models.inception_resnet_v1',
                 '--pretrained_model', self.model_file,
-                '--embedding_size', '512',
+                '--embedding_size', '128',
                 '--epoch_size', '1',
                 '--max_nrof_epochs', '1',
                 '--batch_size', '6',

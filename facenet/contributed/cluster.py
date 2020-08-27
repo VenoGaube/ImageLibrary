@@ -32,8 +32,9 @@ import numpy as np
 import os
 import sys
 import argparse
-import facenet
-import align.detect_face
+
+from facenet.src import facenet as fn
+from facenet.src.align import detect_face
 from sklearn.cluster import DBSCAN
 
 
@@ -43,7 +44,7 @@ def main(args):
     with tf.Graph().as_default():
 
         with tf.Session() as sess:
-            facenet.load_model(args.model)
+            fn.load_model(args.model)
 
             image_list = load_images_from_folder(args.data_dir)
             images = align_data(image_list, args.image_size, args.margin, pnet, rnet, onet)
@@ -121,12 +122,12 @@ def align_data(image_list, image_size, margin, pnet, rnet, onet):
 
     img_list = []
 
-    for x in xrange(len(image_list)):
+    for x in range(len(image_list)):
         img_size = np.asarray(image_list[x].shape)[0:2]
-        bounding_boxes, _ = align.detect_face.detect_face(image_list[x], minsize, pnet, rnet, onet, threshold, factor)
+        bounding_boxes, _ = detect_face.detect_face(image_list[x], minsize, pnet, rnet, onet, threshold, factor)
         nrof_samples = len(bounding_boxes)
         if nrof_samples > 0:
-            for i in xrange(nrof_samples):
+            for i in range(nrof_samples):
                 if bounding_boxes[i][4] > 0.95:
                     det = np.squeeze(bounding_boxes[i, 0:4])
                     bb = np.zeros(4, dtype=np.int32)
@@ -136,7 +137,7 @@ def align_data(image_list, image_size, margin, pnet, rnet, onet):
                     bb[3] = np.minimum(det[3] + margin / 2, img_size[0])
                     cropped = image_list[x][bb[1]:bb[3], bb[0]:bb[2], :]
                     aligned = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
-                    prewhitened = facenet.prewhiten(aligned)
+                    prewhitened = fn.prewhiten(aligned)
                     img_list.append(prewhitened)
 
     if len(img_list) > 0:
@@ -151,7 +152,7 @@ def create_network_face_detection(gpu_memory_fraction):
         gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=gpu_memory_fraction)
         sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
         with sess.as_default():
-            pnet, rnet, onet = align.detect_face.create_mtcnn(sess, None)
+            pnet, rnet, onet = detect_face.create_mtcnn(sess, None)
     return pnet, rnet, onet
 
 

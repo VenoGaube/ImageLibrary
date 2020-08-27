@@ -150,6 +150,7 @@ def main(args):
 
             elif args.mode == 'CLASSIFY':
                 # Classify images
+
                 print('Testing classifier')
                 with open(classifier_filename_exp, 'rb') as infile:
                     (model, class_names) = pickle.load(infile)
@@ -168,7 +169,7 @@ def main(args):
                     results_path = os.path.join(results_path, 'results')
                 print(results_path)
                 for i in range(len(best_class_indices)):
-                    if float(best_class_probabilities[i]) > 0.850:
+                    if float(best_class_probabilities[i]) > 0.750:
                         try:
                             new_dir = Path(results_path) / Path(str(class_names[best_class_indices[i]]))
                             pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)

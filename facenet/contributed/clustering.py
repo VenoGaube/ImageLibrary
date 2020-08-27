@@ -6,6 +6,7 @@ import argparse
 import facenet
 import os
 import math
+
 def face_distance(face_encodings, face_to_compare):
     """
     Given a list of face encodings, compare them to a known face encoding and get a euclidean distance
@@ -17,9 +18,15 @@ def face_distance(face_encodings, face_to_compare):
     import numpy as np
     if len(face_encodings) == 0:
         return np.empty((0))
-
-    #return 1/np.linalg.norm(face_encodings - face_to_compare, axis=1)
-    return np.sum(face_encodings*face_to_compare,axis=1)
+    dist = (face_encodings - face_to_compare) ** 2
+    dist = np.sum(dist, axis=1)
+    dist = np.sqrt(dist)
+    # dist = np.sqrt(np.sum((face_encodings - face_to_compare) ** 2))
+    # print(dist)
+    # print(np.sum(face_encodings*face_to_compare,axis=1))
+    # return 1/np.linalg.norm(face_encodings - face_to_compare, axis=1)
+    # return np.sum(face_encodings*face_to_compare,axis=1)
+    return dist
 
 
 def load_model(model_dir, meta_file, ckpt_file):
@@ -28,7 +35,7 @@ def load_model(model_dir, meta_file, ckpt_file):
     saver.restore(tf.get_default_session(), os.path.join(model_dir_exp, ckpt_file))
 
 
-def _chinese_whispers(encoding_list, threshold=0.6, iterations=20):
+def _chinese_whispers(encoding_list, threshold=0.85, iterations=20):
     """ Chinese Whispers Algorithm
 
     Modified from Alex Loveless' implementation,
@@ -59,7 +66,7 @@ def _chinese_whispers(encoding_list, threshold=0.6, iterations=20):
     # image_paths, encodings = zip(*encoding_list)
 
     if len(encodings) <= 1:
-        print ("No enough encodings to cluster!")
+        print("Not enough encodings to cluster!")
         return []
 
     for idx, face_encoding_to_check in enumerate(encodings):
@@ -79,7 +86,7 @@ def _chinese_whispers(encoding_list, threshold=0.6, iterations=20):
         distances = face_distance(compare_encodings, face_encoding_to_check)
         encoding_edges = []
         for i, distance in enumerate(distances):
-            if distance > threshold:
+            if distance < threshold:
                 # Add edge if facial match
                 edge_id = idx+i+2
                 encoding_edges.append((node_id, edge_id, {'weight': distance}))
@@ -134,6 +141,7 @@ def _chinese_whispers(encoding_list, threshold=0.6, iterations=20):
 
     return sorted_clusters
 
+
 def cluster_facial_encodings(facial_encodings):
     """ Cluster facial encodings
 
@@ -156,6 +164,7 @@ def cluster_facial_encodings(facial_encodings):
     # Only use the chinese whispers algorithm for now
     sorted_clusters = _chinese_whispers(facial_encodings)
     return sorted_clusters
+
 
 def compute_facial_encodings(sess,images_placeholder,embeddings,phase_train_placeholder,image_size,
                     embedding_size,nrof_images,nrof_batches,emb_array,batch_size,paths):
