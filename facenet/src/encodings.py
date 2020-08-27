@@ -53,6 +53,7 @@ from facenet.contributed import clustering as clustering
 from facenet.contributed import cluster as cluster
 
 
+
 class ImageObject:
     def __init__(self, path_to_image):
         self.path_to_image = str(path_to_image)
@@ -131,6 +132,10 @@ def main(args):
 
             print('Number of images: %d' % len(paths))
 
+            # Load the model
+            print('Loading feature extraction model')
+            facenet.load_model(args.model)
+
             # Get input and output tensors
             images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
             embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
@@ -168,6 +173,7 @@ def main(args):
                 if len(clusters[cluster]) < 5:
                     continue
                 for data in clusters[cluster]:
+                    flag = False
                     for i in range(len(config.data)):
                         cluster_name, ending = os.path.splitext(data)
                         for j in range(len(config.data[i].boundingbox['path'])):
@@ -178,6 +184,7 @@ def main(args):
             for i in range(len(encodings)):
                 for j in range(len(config.data)):
                     encodings_name, ending = os.path.splitext(encodings[i].path_to_image)
+                    config_name, konec = os.path.splitext(config.data[j].path_to_image)
                     name = encodings_name
                     for k in range(len(config.data[j].boundingbox['path'])):
                         if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == Path(name).stem:
