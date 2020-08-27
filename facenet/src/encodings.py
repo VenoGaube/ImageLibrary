@@ -53,7 +53,6 @@ from facenet.contributed import clustering as clustering
 from facenet.contributed import cluster as cluster
 
 
-
 class ImageObject:
     def __init__(self, path_to_image):
         self.path_to_image = str(path_to_image)
@@ -130,12 +129,7 @@ def main(args):
 
             paths, labels = facenet.get_image_paths_and_labels(dataset)
 
-            print('Number of classes: %d' % len(dataset))
             print('Number of images: %d' % len(paths))
-
-            # Load the model
-            print('Loading feature extraction model')
-            facenet.load_model(args.model)
 
             # Get input and output tensors
             images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
@@ -171,24 +165,19 @@ def main(args):
 
             # set clusters
             for cluster in range(len(clusters)):
+                if len(clusters[cluster]) < 5:
+                    continue
                 for data in clusters[cluster]:
-                    flag = False
                     for i in range(len(config.data)):
                         cluster_name, ending = os.path.splitext(data)
-                        config_name, konec = os.path.splitext(config.data[i].path_to_image)
-                        name = cluster_name
                         for j in range(len(config.data[i].boundingbox['path'])):
-                            if Path(config.data[i].boundingbox['path'][j]).stem.split('.')[0] == Path(name).stem:
+                            if Path(config.data[i].boundingbox['path'][j]).stem.split('.')[0] == Path(cluster_name).stem:
                                 config.data[i].boundingbox['cluster'][j] = cluster
-                                flag = True
-                                break
-                        if flag:
-                            break
+
             # set embedding
             for i in range(len(encodings)):
                 for j in range(len(config.data)):
                     encodings_name, ending = os.path.splitext(encodings[i].path_to_image)
-                    config_name, konec = os.path.splitext(config.data[j].path_to_image)
                     name = encodings_name
                     for k in range(len(config.data[j].boundingbox['path'])):
                         if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == Path(name).stem:
@@ -200,60 +189,29 @@ def main(args):
                         if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == Path(paths[i]).stem.split('.')[0]:
                             labels[i] = config.data[j].boundingbox['cluster'][k]
 
-            if args.mode == 'TRAIN':
-                # Train classifier
-                print('Training classifier')
-                model = SVC(kernel='linear', probability=True)
-                model.fit(emb_array, labels)
+            results_path = os.getcwd()
+            if not os.path.exists('results'):
+                os.mkdir('results')
+                results_path = os.path.join(results_path, 'results')
+            else:
+                results_path = os.path.join(results_path, 'results')
 
-                # Create a list of class names
-                class_names = []
-                for name in range(len(clusters)):
-                    class_names.append(name)
-
-                # Saving classifier model
-                with open(classifier_filename_exp, 'wb') as outfile:
-                    pickle.dump((model, class_names), outfile)
-                print('Saved classifier model to file "%s"' % classifier_filename_exp)
-
-                # Classify images
-                print('Testing classifier')
-                with open(classifier_filename_exp, 'rb') as infile:
-                    (model, class_names) = pickle.load(infile)
-
-                print('Loaded classifier model from file "%s"' % classifier_filename_exp)
-
-                predictions = model.predict_proba(emb_array)
-                best_class_indices = np.argmax(predictions, axis=1)
-                best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
-
-                results_path = os.getcwd()
-                if not os.path.exists('results'):
-                    os.mkdir('results')
-                    results_path = os.path.join(results_path, 'results')
-                else:
-                    results_path = os.path.join(results_path, 'results')
-                print(results_path)
-                for i in range(len(best_class_indices)):
-                    if float(best_class_probabilities[i]) > 0.750:
-                        try:
-                            new_dir = Path(results_path) / Path(str(class_names[best_class_indices[i]]))
-                            pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
-                            copy2(str(paths[i]), new_dir)
-                        except IndexError:
-                            pass
-                    else:
-                        flag = False
+            for i in range(len(clusters)):
+                if len(clusters[i]) < len(config.data)/10:
+                    for o in range(len(clusters[i])):
                         for j in range(len(config.data)):
                             for k in range(len(config.data[j].boundingbox["path"])):
-                                if Path(config.data[j].boundingbox["path"][k]).stem == Path(paths[i]).stem:
+                                if Path(config.data[j].boundingbox["path"][k]).stem == Path(clusters[i][o]).stem:
                                     config.data[j].boundingbox["cluster"][k] = 99999
-                                    flag = True
-                                    break
-                            if flag:
-                                break
-                accuracy = np.mean(np.equal(best_class_indices, labels))
-                print('Accuracy: %.3f' % accuracy)
+                    continue
+                else:
+                    for j in range(len(clusters[i])):
+                        try:
+                            new_dir = Path(results_path) / Path(str(i))
+                            pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
+                            copy2(str(clusters[i][j]), new_dir)
+                        except IndexError:
+                            pass
 
 
 def split_dataset(dataset, min_nrof_images_per_class, nrof_train_images_per_class):

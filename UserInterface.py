@@ -153,23 +153,6 @@ class OpenWindow:
         self.master.destroy()
         cv2.destroyWindow("Image")
 
-    def person_name(self):
-        if self.entry.get() != '':
-            dir_name = self.entry.get().upper()
-            new_dir = str(path_train_raw) / Path(dir_name)
-            # print("new_dir = " + new_dir)
-            main_dir = str(path_train_raw)
-
-            pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
-            try:
-                copy2(str(src), new_dir)
-            except SameFileError:
-                print("SameFileError")
-                pass
-            # Preverimo če je že dovolj slik v vsaki datoteki in tega ne rabimo več gledat pa lahko zaključimo.
-            self.check_number_of_images(main_dir)
-            self.master.destroy()
-
     def check_number_of_images(self, path):
         # print("path = " + path)
         num_of_folders = 0
@@ -304,7 +287,7 @@ def call_commands():
     align_dataset_mtcnn.main(arguments_train_aligned)
 
     # Encoding Command
-    print("\rLoading Encoder and Classify Command")
+    print("\rLoading Clustering Command")
     arguments_classifier = ClassifyArguments(path_test_aligned, 'TRAIN')
     encodings.main(arguments_classifier)
 
