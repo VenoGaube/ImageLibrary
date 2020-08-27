@@ -1,25 +1,20 @@
 import shutil
-from tkinter import *
 from pathlib import Path
-from shutil import copy2, SameFileError
 from json import JSONEncoder
-from os.path import normpath, basename
-from PIL import Image
+from tkinter import *
+from tkinter import filedialog
+from shutil import copy2
 
 import cv2
 import os
 import pathlib
-import secrets
 import tkinter as tk
 import json
-import numpy as np
-import jsonpickle
 
 # file imports
 import findImages
 import config
 from facenet.src.align import align_dataset_mtcnn
-import facenet.src.classifier as classifier
 import facenet.src.encodings as encodings
 
 
@@ -44,11 +39,11 @@ def path_finder(path):
             pass
 
 
-path_test_raw = ""  # "\\facenet\\data\\images\\test_raw\\"
-path_test_aligned = ""  # "\\facenet\\data\\images\\test_aligned\\"
+path_test_raw = ""              # "\\facenet\\data\\images\\test_raw\\"
+path_test_aligned = ""          # "\\facenet\\data\\images\\test_aligned\\"
 
-path_model = ""  # "\\facenet\\models\\20180402-114759.pb"
-path_classifier_pickle = ""  # "\\facenet\\models\\my_classifier.pkl"
+path_model = ""                 # "\\facenet\\models\\20180402-114759.pb"
+path_classifier_pickle = ""     # "\\facenet\\models\\my_classifier.pkl"
 
 src = ""
 all_images = 0
@@ -81,67 +76,25 @@ class ClassifyArguments:
         self.image_size = 160
 
 
-class MultipleFacesFrame:
-    def __init__(self, master):
-        self.master = master
-        self.frame = tk.Frame(self.master)
-        self.input = Entry(self.master, width=40)
-        self.input.pack()
-        self.input.focus_set()
-        self.more_people = tk.Button(self.frame, text=f"Next person", command=self.person_name)
-        self.quit = tk.Button(self.frame, text=f"Done", command=self.close_window)
-        self.more_people.pack()
-        self.quit.pack()
-        self.frame.pack()
-
-    def close_window(self):
-        self.master.destroy()
-        OpenWindow.close_window(self.master)
-        cv2.destroyWindow("Image")
-
-    def person_name(self):
-        if self.input.get() != '':
-            dir_name = self.input.get().upper()
-            try:
-                if file_check(Path(src).stem, dir_name):
-                    config.multiples.append(ImageObject(src))
-                    ImageObject.append_to_folder(config.multiples[-1], dir_name)
-                    print("Saved %s" % dir_name + ".")
-            except SameFileError:
-                print("SameFileError")
-                pass
-
-
 class OpenWindow:
     def __init__(self, master):
         self.master = master
-        self.show_widgets(master)
+        self.show_widgets()
 
-    def show_widgets(self, master):
+    def show_widgets(self):
         self.frame = tk.Frame(self.master)
         self.master.title("Input text")
         self.entry = Entry(self.master, width=40)
         self.entry.pack()
         self.entry.focus_set()
-        user_input = tk.Button(root, text="Confirm", width=10, command=self.person_name)
-        pass_button = tk.Button(root, text="Pass", width=10, command=self.close_window)
-        automatic = tk.Button(root, text="Automatic", width=10, command=self.automatic)
-        self.create_window("Multiple faces", MultipleFacesFrame)
-        user_input.pack()
+        pass_button = tk.Button(window, text="Pass", width=10, command=self.close_window)
+        automatic = tk.Button(window, text="Automatic", width=10, command=self.automatic)
         pass_button.pack()
         automatic.pack()
         self.frame.pack()
 
-    def create_window(self, text, _class):
-        # Button that creates a new window
-        tk.Button(self.frame, text=text, width=10, command=lambda: self.new_window(_class)).pack()
-
     def create_button(self, text, function):
         tk.Button(self.frame, text=text, width=10, command=lambda: function).pack()
-
-    def new_window(self, _class):
-        self.win = tk.Toplevel(self.master)
-        _class(self.win)
 
     def close_window(self):
         self.master.destroy()
@@ -213,11 +166,7 @@ class OpenWindow:
 class ImageObject:
     def __init__(self, path_to_image):
         self.path_to_image = str(path_to_image)
-        self.folders = list()
         self.boundingbox = {'bbox': list(), 'path': list(), 'cluster': list(), 'embedding': list()}
-
-    def append_to_folder(self, folder_name):
-        self.folders.append(folder_name)
 
     def append_bb(self, bounding_boxes):
         self.boundingbox["bbox"].append(bounding_boxes)
@@ -231,126 +180,27 @@ class ImageObject:
     def append_emb(self, embedding):
         self.boundingbox["embedding"].append(embedding)
 
-
-def folder_check(imageInstance, folder_name):
-    flag = 0
-    for i in range(len(imageInstance.folders)):
-        if imageInstance.folders[i] == folder_name:
-            flag += 1
-    if flag < len(imageInstance.folders):
-        ImageObject.append_to_folder(imageInstance, folder_name)
+    def reprJSON(self):
+        return dict(path_to_image=self.path_to_image, boundingbox=self.boundingbox)
 
 
-def file_check(src_name, folder_name):
-    for i in range(len(config.final_multi)):
-        if config.final_multi[i].path_to_image.stem == src_name:
-            folder_check(config.final_multi[i], folder_name)
-            return False
-    return True
+class ImageObjectEncoder(JSONEncoder):
+    def default(self, obj):
+        return obj.__dict__
 
 
-def group_images(results_path):
-    for i in range(len(config.final_multi)):
-        config.final_multi[i].folders.sort()
-        config.final_multi[i].folders = remove_duplicates(config.final_multi[i].folders)
-        create_folders(config.final_multi[i], results_path)
-
-
-def create_folders(multi, results_path):
-    group_folder = ""
-    flag = True
-    for folder in multi.folders:
-        if flag:
-            group_folder = str(folder)
-            flag = False
-        else:
-            group_folder = group_folder + "&" + str(folder)
-    group_path = os.path.join(str(results_path), str(group_folder))
-    if os.path.isdir(group_path):
-        copy2(str(multi.path_to_image), str(group_path))
+def ComplexHandler(Obj):
+    if hasattr(Obj, 'jsonable'):
+        return Obj.jsonable
     else:
-        os.mkdir(str(group_path))
-        copy2(str(multi.path_to_image), str(group_path))
+        raise TypeError('Object of type %s with value of %s is not JSON serializable' % (type(Obj), repr(Obj)))
 
 
 def remove_duplicates(folder_list):
     return list(dict.fromkeys(folder_list))
 
 
-def call_commands():
-
-    # Test Command
-    print('\rResizing found images.')
-    findImages.resize_images(str(path_test_raw))
-    print("\rLoading Test Command")
-    arguments_train_aligned = AlignArguments(path_test_raw, path_test_aligned)
-    align_dataset_mtcnn.main(arguments_train_aligned)
-
-    # Encoding Command
-    print("\rLoading Clustering Command")
-    arguments_classifier = ClassifyArguments(path_test_aligned, 'TRAIN')
-    encodings.main(arguments_classifier)
-
-    """
-    # Write to JSON file
-    for i in range(len(config.data)):
-        config.data[i].boundingbox = {"boundingbox": config.data[i].boundingbox}
-        config.data[i].embedding = {"embedding": config.data[i].embedding}
-
-        jsonData = json.dumps(config.data[i], default=ComplexHandler)
-        with open('data.json', 'a') as outfile:
-            json.dump(jsonData, outfile)
-
-    # JSON file
-    f = open('data.json', "r")
-
-    # Reading from file
-    data = json.loads(f.read())
-
-    # Iterating through the json
-    # list
-    for i in data['py/object']:
-        print(i)
-
-        # Closing file
-    f.close()
-    """
-
-    path_result = os.getcwd()
-    path_origin = path_test_raw
-
-    for folder in Path(path_origin).iterdir():
-        if folder.name == "gallery":
-            path_origin = path_origin / folder
-
-    for folder in Path(path_result).iterdir():
-        if folder.name == "results":
-            path_result = path_result / folder
-    # print(path_result, path_origin)
-    """
-    for folder in Path(path_result).iterdir():
-        for pic in folder.iterdir():
-            original_name, ending = os.path.splitext(pic)
-            name = original_name
-            name = str(name[:-2])
-            pic = name + ending
-            for img in Path(path_origin).iterdir():
-                print('\rLoading: /', end="")
-                if Path(pic).stem == img.stem:
-                    replace, end = os.path.splitext(pic)
-                    replace = original_name + end
-                    pic = replace
-                    os.remove(pic)
-                    print('\rLoading: -', end="")
-                    copy2(path_origin / img, path_result / folder)
-                    break
-                print('\rLoading: \\', end="")
-    """
-    print()
-    print("Collecting group images and creating folders")
-
-    # group_images(path_result)
-
+def draw_bounding_boxes():
     for i in range(len(config.data)):
         slika = cv2.imread(str(config.data[i].path_to_image))
         display_flag = 0
@@ -384,8 +234,29 @@ def call_commands():
         if display_flag:
             cv2.imshow("Image", slika)
             cv2.waitKey(0)
+    cv2.destroyWindow("Image")
 
-    exit(0)
+
+def call_commands():
+
+    # Test Command
+    print('\rResizing found images.')
+    findImages.resize_images(str(path_test_raw))
+    print("\rLoading Test Command")
+    arguments_train_aligned = AlignArguments(path_test_raw, path_test_aligned)
+    align_dataset_mtcnn.main(arguments_train_aligned)
+
+    # Encoding Command
+    print("\rLoading Clustering Command")
+    arguments_classifier = ClassifyArguments(path_test_aligned, 'TRAIN')
+    encodings.main(arguments_classifier)
+
+    # Write to JSON file
+    imageJSONData = json.dumps(config.data, indent=4, cls=ImageObjectEncoder)
+    with open('data.json', 'w') as outfile:
+        outfile.write(imageJSONData)
+
+    draw_bounding_boxes()
 
 
 def check_number_of_images(path):
@@ -426,7 +297,7 @@ def check_number_of_images(path):
         # končaj z UI displayem in naredi vse še automatsko
         print("Dovolj slik ste izbrali, hvala. Vrnite se čez 1-2 minuti.")
         # tu je treba pol klicat tiste štiri commande za align in train in classify
-        root.destroy()
+        # root.destroy()
         cv2.destroyWindow("Image")
         call_commands()
     else:
@@ -461,22 +332,136 @@ def delete_create():
     os.mkdir(aliged_gallery)
 
 
+# Function for opening the file explorer window
+def browseFiles():
+        filename = filedialog.askopenfilename(initialdir=str(config.result_path), title="Select a File", filetypes=[("All files", "*.*")])
+
+
+def close_window():
+    window.destroy()
+
+
+def file_explore():
+
+    # Set window title
+    window.title('File Explorer')
+
+    # Set window size
+    window.geometry("700x200")
+
+    # Set window background color
+    window.config(background="white")
+
+    # Create a File Explorer label
+    label_file_explorer = Label(window, text="File Explorer using Tkinter", width=100, height=4, fg="blue")
+
+    button_explore = Button(window, text="Browse Files", command=browseFiles)
+
+    button_exit = Button(window, text="Exit", command=close_window)
+
+    # Grid method is chosen for placing
+    # the widgets at respective positions
+    # in a table like structure by
+    # specifying rows and columns
+    label_file_explorer.grid(column=1, row=1)
+
+    button_explore.grid(column=1, row=2)
+
+    button_exit.grid(column=1, row=3)
+
+    # Let the window wait for any events
+    window.mainloop()
+
+
+def reconfigure_delete_config():
+    changed_folders = []
+    for i in results_array:
+        flag = False
+        for j in reconfigure_array:
+            if i == j:
+                flag = True
+        if not flag:
+            changed_folders.append(i)
+    i = 0
+    while i in range(len(config.data)):
+        data = config.data[i].boundingbox["cluster"]
+        j = 0
+        while j in range(len(data)):
+            for value in changed_folders:
+                basic = config.data[i].boundingbox
+                if int(data[j]) == int(value):
+                    if len(data) == 1:
+                        del config.data[i]
+                        i -= 1
+                        break
+                    del data[j]
+                    del basic["embedding"][j]
+                    del basic["path"][j]
+                    del basic["bbox"][j]
+                    j -= 1
+                    break
+            j += 1
+        i += 1
+
+    # Write to JSON file
+    imageJSONData = json.dumps(config.data, indent=4, cls=ImageObjectEncoder)
+    with open('data.json', 'w') as outfile:
+        outfile.write(imageJSONData)
+
+
+def reconfigure_config():
+    return 0
+
+
+def count_folders():
+    names = []
+    for folder in Path(config.result_path).iterdir():
+        for file in folder.iterdir():
+            if Path(file).is_dir():
+                names.append(file.stem)
+        names.append(folder.stem)
+    return names
+
+
+def rename_clusters(previous, current):
+    for i in range(len(config.data)):
+        for j in range(len(config.data[i].boundingbox["cluster"])):
+            data = config.data[i].boundingbox["cluster"]
+            if int(data[j]) == int(previous):
+                config.data[i].boundingbox["cluster"][j] = int(current)
+
+    # Write to JSON file
+    imageJSONData = json.dumps(config.data, indent=4, cls=ImageObjectEncoder)
+    with open('data.json', 'w') as outfile:
+        outfile.write(imageJSONData)
+
+
+def move_images(previous, current):
+    for file in previous.iterdir():
+        copy2(file, str(current))
+
+
+def check_if_moved():
+    for folder in Path(config.result_path).iterdir():
+        for file in folder.iterdir():
+            if Path(file).is_dir():
+                rename_clusters(file.stem, folder.stem)
+                move_images(Path(file), folder)
+                shutil.rmtree(file)
+
+
 path_finder(pathlib.PurePath(os.getcwd()))
 delete_create()
 vse_slike = findImages.get_images()
 call_commands()
-loop = 0  # na vsak interval pogleda sliko, da ne gleda slik ene za drugo
-while True:
-    image = secrets.choice(vse_slike)
-    pot = Path(image['path'])
-    src = image['path']
+# Create the root window
+window = Tk()
+results_array = count_folders()
+file_explore()
+check_if_moved()
+reconfigure_array = count_folders()
+if len(results_array) != len(reconfigure_array):
+    reconfigure_config()
+    reconfigure_delete_config()
+    draw_bounding_boxes()
 
-    image = cv2.imread(str(image['path']))
-    height, width, c = image.shape
-
-    small = cv2.resize(image, (0, 0), fx=0.3, fy=0.3)
-    cv2.imshow("Image", small)
-
-    root = Tk()
-    app = OpenWindow(root)
-    root.mainloop()

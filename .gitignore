@@ -2,6 +2,7 @@
 facenet/data/images
 facenet/models/my_classifier.pkl
 /results
+data.json
 
 led / optimized / DLL files
 __pycache__/

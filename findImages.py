@@ -131,7 +131,7 @@ def resize_images(path):
             pass
         shape = resized.size
         shape = list(shape)
-        if shape[0] < 1000 and shape[1] < 1000:
+        if shape[0] < 1500 and shape[1] < 1500:
             continue
         shape[0] = int(shape[0] * resize)
         shape[1] = int(shape[1] * resize)

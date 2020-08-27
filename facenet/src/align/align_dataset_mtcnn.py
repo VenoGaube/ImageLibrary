@@ -53,11 +53,7 @@ import matplotlib.pyplot as plt
 class ImageObject:
     def __init__(self, path_to_image):
         self.path_to_image = str(path_to_image)
-        self.folders = list()
         self.boundingbox = {'bbox': list(), 'path': list(), 'cluster': list(), 'embedding': list()}
-
-    def append_to_folder(self, folder_name):
-        self.folders.append(folder_name)
 
     def append_bb(self, bounding_boxes):
         self.boundingbox["bbox"].append(bounding_boxes)
