@@ -393,16 +393,22 @@ def delete_create():
     results_delete = os.path.join(os.getcwd(), results)
     results_final_delete = os.path.join(os.getcwd(), results_final)
     train_path = os.path.join(base_images_path, aligned)
+
     if os.path.isdir(results_final_delete):
         shutil.rmtree(results_final_delete)
+
     if os.path.isdir(results_delete):
         shutil.rmtree(results_delete)
+
     if os.path.isdir(raw_gallery):
         shutil.rmtree(raw_gallery)
+
     if os.path.isdir(aliged_gallery):
         shutil.rmtree(aliged_gallery)
+
     if os.path.isdir(train_path):
         shutil.rmtree(train_path)
+
     os.mkdir(raw_gallery)
     os.mkdir(aliged_gallery)
 

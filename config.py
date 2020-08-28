@@ -2,6 +2,6 @@ multiples = []
 final_multi = []
 beta = 0
 data = []
-result_path = 'C:\\Users\\Veno\\Desktop\\ImageLibrary\\results'
+result_path = ''
 podatki = None
 class_names = []

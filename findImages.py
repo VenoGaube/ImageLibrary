@@ -28,7 +28,7 @@ def path_finder(path):
 
 path_gallery = ""  # "\\facenet\\data\\images\\test_raw\\gallery"
 resize = 0.3
-path_finder(pathlib.PurePath(os.getcwd()))
+
 
 
 def get_rotation(img_path):
@@ -98,7 +98,7 @@ def get_images():
 
     # Tukaj bodo vse slike in njihovi podatki
     array = []
-
+    path_finder(pathlib.PurePath(os.getcwd()))
     # Sprehodimo se po vseh folderjih znotraj root direktorija
     for folder in Path(pot).iterdir():
         if folder.name != "Public" and folder.name != "Default" and folder.name != "All Users" \
