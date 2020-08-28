@@ -193,6 +193,8 @@ class OpenWindow:
             # končaj z UI displayem in naredi vse še automatsko
             img_flag = False
             # tu je treba pol klicat tiste štiri commande za align in train in classify
+            print()
+            print("Naslednja oseba:")
             self.master.destroy()
             cv2.destroyWindow("Image")
         else:
@@ -206,7 +208,7 @@ class OpenWindow:
                     stevec += 1
                 if stevec < limit:
                     razlika = limit - stevec
-                    print("Potrebujemo še %d" % razlika + " slik od osebe: %s." % folder.name)
+                    print("\rPotrebujemo še %d" % razlika + " slik od osebe: %s." % folder.name, end="")
 
 
 class ImageObject:
@@ -362,7 +364,6 @@ def check_number_of_images(path):
 
     if counter == len(counter_array):
         # končaj z UI displayem in naredi vse še automatsko
-        print("Dovolj slik ste izbrali, hvala. Vrnite se čez 1-2 minuti.")
         # tu je treba pol klicat tiste štiri commande za align in train in classify
         # root.destroy()
         cv2.destroyWindow("Image")
@@ -378,7 +379,7 @@ def check_number_of_images(path):
                 stevec += 1
             if stevec < 20:
                 razlika = 20 - stevec
-                print("Potrebujemo še %d" % razlika + " slik od osebe: %s." % folder.name)
+                print("\rPotrebujemo še %d" % razlika + " slik od osebe: %s." % folder.name, end="")
 
 
 def delete_create():
@@ -600,21 +601,10 @@ check_if_moved()
 reconfigure_array = count_folders()
 if len(results_array) != len(reconfigure_array):
     reconfigure_config()
-
-
-
-
-
-
-
-
-
-
     reconfigure_delete_config()
     draw_bounding_boxes()
 
 # Anotacija slik
-
 for folder in Path(config.result_path).iterdir():
     img_flag = True
     while img_flag:
