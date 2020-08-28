@@ -1,3 +1,4 @@
+import secrets
 import shutil
 from pathlib import Path
 from json import JSONEncoder
@@ -16,10 +17,11 @@ import findImages
 import config
 from facenet.src.align import align_dataset_mtcnn
 import facenet.src.encodings as encodings
+import facenet.src.classifier as classifier
 
 
 def path_finder(path):
-    global path_test_raw, path_test_aligned, path_model, path_classifier_pickle
+    global path_test_raw, path_test_aligned, path_model, path_classifier_pickle, base_images_path
     for element in Path(path).iterdir():
         try:
             if element.is_file():
@@ -31,6 +33,7 @@ def path_finder(path):
                     continue
             else:
                 if element.name == "test_raw":
+                    base_images_path = Path(path)
                     path_test_raw = Path(path) / Path(element.name)
                 elif element.name == "test_aligned":
                     path_test_aligned = Path(path) / Path(element.name)
@@ -41,10 +44,13 @@ def path_finder(path):
 
 path_test_raw = ""              # "\\facenet\\data\\images\\test_raw\\"
 path_test_aligned = ""          # "\\facenet\\data\\images\\test_aligned\\"
+path_train_aligned = ""         # "\\facenet\\data\\images\\train_aligned\\"
+base_images_path = ""           # "\\facenet\\data\\images\\"
 
 path_model = ""                 # "\\facenet\\models\\20180402-114759.pb"
 path_classifier_pickle = ""     # "\\facenet\\models\\my_classifier.pkl"
 
+img_flag = True
 src = ""
 all_images = 0
 
@@ -76,6 +82,22 @@ class ClassifyArguments:
         self.image_size = 160
 
 
+class FinalClassifyArguments:
+    def __init__(self, path_aligned_folder, mode):
+        self.use_split_dataset = False
+        self.data_dir = str(path_aligned_folder)
+        self.test_data_dir = os.path.join(str(path_test_aligned), "gallery")
+        self.mode = mode
+        self.model = str(path_model)
+        self.classifier_filename = str(path_classifier_pickle)
+        # Vsi ti spodaj imajo nek default value znotraj funckije parse_arguments v classifier.py
+        self.seed = 666
+        self.min_nrof_images_per_class = 1
+        self.nrof_train_images_per_class = 1
+        self.batch_size = 90
+        self.image_size = 160
+
+
 class OpenWindow:
     def __init__(self, master):
         self.master = master
@@ -87,11 +109,35 @@ class OpenWindow:
         self.entry = Entry(self.master, width=40)
         self.entry.pack()
         self.entry.focus_set()
-        pass_button = tk.Button(window, text="Pass", width=10, command=self.close_window)
-        automatic = tk.Button(window, text="Automatic", width=10, command=self.automatic)
+        user_input = tk.Button(root, text="Confirm", width=10, command=self.person_name)
+        pass_button = tk.Button(self.master, text="Pass", width=10, command=self.close_window)
+        # automatic = tk.Button(self.master, text="Automatic", width=10, command=self.automatic)
+        user_input.pack()
         pass_button.pack()
-        automatic.pack()
+        # automatic.pack()
         self.frame.pack()
+
+    def person_name(self):
+        global path_train_aligned
+        if self.entry.get() != '':
+            dir_name = self.entry.get().upper()
+            path_train_aligned = os.path.join(base_images_path, "train_aligned")
+            new_dir = os.path.join(str(path_train_aligned), Path(dir_name))
+            main_dir = str(path_train_aligned)
+
+            pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
+            try:
+                copy2(str(image_path), new_dir)
+                os.remove(image_path)
+            except shutil.SameFileError:
+                print("SameFileError")
+                pass
+            # Preverimo če je že dovolj slik v vsaki datoteki in tega ne rabimo več gledat pa lahko zaključimo.
+            self.check_number_of_images(main_dir)
+            try:
+                self.master.destroy()
+            except TclError:
+                pass
 
     def create_button(self, text, function):
         tk.Button(self.frame, text=text, width=10, command=lambda: function).pack()
@@ -107,6 +153,7 @@ class OpenWindow:
         cv2.destroyWindow("Image")
 
     def check_number_of_images(self, path):
+        global img_flag
         # print("path = " + path)
         num_of_folders = 0
 
@@ -122,7 +169,7 @@ class OpenWindow:
         counter_array = [0] * num_of_folders
 
         counter = 0
-        limit = 20
+        limit = 10
         j = 0
         i = 0
         for folder in Path(path).iterdir():
@@ -144,11 +191,10 @@ class OpenWindow:
 
         if counter == len(counter_array):
             # končaj z UI displayem in naredi vse še automatsko
-            print("Dovolj slik ste izbrali, hvala. Vrnite se čez 1-2 minuti.")
+            img_flag = False
             # tu je treba pol klicat tiste štiri commande za align in train in classify
             self.master.destroy()
             cv2.destroyWindow("Image")
-            call_commands()
         else:
             # user dalje kategorizira stvari
             for folder in Path(path).iterdir():
@@ -158,8 +204,8 @@ class OpenWindow:
                     continue
                 for file in folder.iterdir():
                     stevec += 1
-                if stevec < 20:
-                    razlika = 20 - stevec
+                if stevec < limit:
+                    razlika = limit - stevec
                     print("Potrebujemo še %d" % razlika + " slik od osebe: %s." % folder.name)
 
 
@@ -237,26 +283,47 @@ def draw_bounding_boxes():
     cv2.destroyWindow("Image")
 
 
-def call_commands():
+def draw_bounding_boxes_final():
+    for i in range(len(config.data)):
+        slika = cv2.imread(str(config.data[i].path_to_image))
+        display_flag = 0
+        if len(config.data[i].boundingbox['cluster']) < 1:
+            continue
+        if len(config.data[i].boundingbox['bbox']) < 1 or (len(config.data[i].boundingbox['bbox']) == 1 and config.data[i].boundingbox['bbox'][0] == 99999):
+            continue
 
-    # Test Command
-    print('\rResizing found images.')
-    findImages.resize_images(str(path_test_raw))
-    print("\rLoading Test Command")
-    arguments_train_aligned = AlignArguments(path_test_raw, path_test_aligned)
-    align_dataset_mtcnn.main(arguments_train_aligned)
+        if len(config.data[i].boundingbox['cluster']) <= len(config.data[i].boundingbox['bbox']):
+            for j in range(len(config.data[i].boundingbox['cluster'])):
+                if config.data[i].boundingbox['cluster'][j] == 99999:
+                    continue
+                if type(config.data[i].boundingbox['cluster'][j]) == int:
+                    continue
 
-    # Encoding Command
-    print("\rLoading Clustering Command")
-    arguments_classifier = ClassifyArguments(path_test_aligned, 'TRAIN')
-    encodings.main(arguments_classifier)
+                x = int(config.data[i].boundingbox['bbox'][j][0])
+                y = int(config.data[i].boundingbox['bbox'][j][1])
+                w = int(config.data[i].boundingbox['bbox'][j][2])
+                h = int(config.data[i].boundingbox['bbox'][j][3])
+                cv2.rectangle(slika, (x, y), (w, h), (36, 255, 12), 1)
+                cv2.putText(slika, str(config.data[i].boundingbox['cluster'][j]), (x, y + 25), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+                display_flag = 1
+        else:
+            for j in range(len(config.data[i].boundingbox['cluster'])):
+                if config.data[i].boundingbox['cluster'][j] == 99999:
+                    continue
+                if type(config.data[i].boundingbox['cluster'][j]) == int:
+                    continue
 
-    # Write to JSON file
-    imageJSONData = json.dumps(config.data, indent=4, cls=ImageObjectEncoder)
-    with open('data.json', 'w') as outfile:
-        outfile.write(imageJSONData)
-
-    draw_bounding_boxes()
+                x = int(config.data[i].boundingbox['bbox'][j][0])
+                y = int(config.data[i].boundingbox['bbox'][j][1])
+                w = int(config.data[i].boundingbox['bbox'][j][2])
+                h = int(config.data[i].boundingbox['bbox'][j][3])
+                cv2.rectangle(slika, (x, y), (w, h), (36, 255, 12), 1)
+                cv2.putText(slika, str(config.data[i].boundingbox['cluster'][j]), (x, y + 25), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+                display_flag = 1
+        if display_flag:
+            cv2.imshow("Image", slika)
+            cv2.waitKey(0)
+    cv2.destroyWindow("Image")
 
 
 def check_number_of_images(path):
@@ -317,17 +384,24 @@ def check_number_of_images(path):
 def delete_create():
     gallery = "gallery"
     results = "results"
+    results_final = "results_final"
+    aligned = "train_aligned"
+
     raw_gallery = os.path.join(path_test_raw, gallery)
     aliged_gallery = os.path.join(path_test_aligned, gallery)
     results_delete = os.path.join(os.getcwd(), results)
-
+    results_final_delete = os.path.join(os.getcwd(), results_final)
+    train_path = os.path.join(base_images_path, aligned)
+    if os.path.isdir(results_final_delete):
+        shutil.rmtree(results_final_delete)
     if os.path.isdir(results_delete):
         shutil.rmtree(results_delete)
     if os.path.isdir(raw_gallery):
         shutil.rmtree(raw_gallery)
     if os.path.isdir(aliged_gallery):
         shutil.rmtree(aliged_gallery)
-
+    if os.path.isdir(train_path):
+        shutil.rmtree(train_path)
     os.mkdir(raw_gallery)
     os.mkdir(aliged_gallery)
 
@@ -450,6 +524,70 @@ def check_if_moved():
                 shutil.rmtree(file)
 
 
+def get_result_images(folder):
+    folder_images = []
+    for file in folder.iterdir():
+        folder_images.append(file)
+    return folder_images
+
+
+def results_command():
+
+    # Train Command
+    print("\rLoading Classifier TRAIN Command")
+    arguments_classifier = FinalClassifyArguments(path_train_aligned, 'TRAIN')
+    classifier.main(arguments_classifier)
+    # print("konec 3. command")
+
+    # Classify Command
+    print("\rLoading Classifier CLASSIFY Command")
+    arguments_classifier = FinalClassifyArguments(path_test_aligned, 'CLASSIFY')
+    classifier.main(arguments_classifier)
+    # print("konec 4. command")
+
+    # Write to JSON file
+    imageJSONData = json.dumps(config.data, indent=4, cls=ImageObjectEncoder)
+    with open('data.json', 'w') as outfile:
+        outfile.write(imageJSONData)
+
+    draw_bounding_boxes_final()
+
+
+def call_commands():
+
+    # Test Command
+    print('\rResizing found images.')
+    findImages.resize_images(str(path_test_raw))
+    print("\rLoading Test Command")
+    arguments_train_aligned = AlignArguments(path_test_raw, path_test_aligned)
+    align_dataset_mtcnn.main(arguments_train_aligned)
+
+    # Encoding Command
+    print("\rLoading Clustering Command")
+    arguments_classifier = ClassifyArguments(path_test_aligned, 'TRAIN')
+    encodings.main(arguments_classifier)
+
+    # Write to JSON file
+    imageJSONData = json.dumps(config.data, indent=4, cls=ImageObjectEncoder)
+    with open('data.json', 'w') as outfile:
+        outfile.write(imageJSONData)
+
+    draw_bounding_boxes()
+
+
+def move_results_to_test_aligned():
+    gallery = "gallery"
+    path_test_gallery = os.path.join(path_test_aligned, gallery)
+    try:
+        shutil.rmtree(path_test_gallery)
+    except FileNotFoundError:
+        pass
+    os.mkdir(path_test_gallery)
+    for folder in Path(config.result_path).iterdir():
+        for file in folder.iterdir():
+            copy2(str(file), str(path_test_gallery))
+
+
 path_finder(pathlib.PurePath(os.getcwd()))
 delete_create()
 vse_slike = findImages.get_images()
@@ -462,6 +600,34 @@ check_if_moved()
 reconfigure_array = count_folders()
 if len(results_array) != len(reconfigure_array):
     reconfigure_config()
+
+
+
+
+
+
+
+
+
+
     reconfigure_delete_config()
     draw_bounding_boxes()
 
+# Anotacija slik
+
+for folder in Path(config.result_path).iterdir():
+    img_flag = True
+    while img_flag:
+        vse_slike = get_result_images(folder)
+        image_path = secrets.choice(vse_slike)
+
+        image = cv2.imread(str(image_path))
+        height, width, c = image.shape
+        cv2.imshow("Image", image)
+
+        root = Tk()
+        app = OpenWindow(root)
+        root.mainloop()
+
+move_results_to_test_aligned()
+results_command()

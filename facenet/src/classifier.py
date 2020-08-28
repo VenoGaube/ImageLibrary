@@ -95,7 +95,7 @@ def main(args):
             for cls in dataset:
                 assert (len(cls.image_paths) > 0, 'There must be at least one image for each class in the dataset')
 
-            paths, labels = facenet.get_image_paths_and_labels(dataset)
+            paths, labels = facenet.get_image_paths_and_labels_final_results(dataset)
 
             print('Number of classes: %d' % len(dataset))
             print('Number of images: %d' % len(paths))
@@ -128,7 +128,11 @@ def main(args):
 
             bar.finish()
             classifier_filename_exp = os.path.expanduser(args.classifier_filename)
-            config.embedded_array = emb_array
+            encodings = list()
+            for i in range(len(paths)):
+                encodings.append(ImageEncoding(paths[i], emb_array[i]))
+
+            clusters = clustering.cluster_facial_encodings(encodings)
 
             if args.mode == 'TRAIN':
                 # Train classifier
@@ -150,19 +154,51 @@ def main(args):
                 print('Testing classifier')
                 with open(classifier_filename_exp, 'rb') as infile:
                     (model, class_names) = pickle.load(infile)
-
+                config.class_names = class_names
                 print('Loaded classifier model from file "%s"' % classifier_filename_exp)
 
                 predictions = model.predict_proba(emb_array)
                 best_class_indices = np.argmax(predictions, axis=1)
                 best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
 
+                # set clusters
+                for cluster in range(len(clusters)):
+                    if len(clusters[cluster]) < 5:
+                        continue
+                    for data in clusters[cluster]:
+                        flag = False
+                        for i in range(len(config.data)):
+                            cluster_name, ending = os.path.splitext(data)
+                            for j in range(len(config.data[i].boundingbox['path'])):
+                                if Path(config.data[i].boundingbox['path'][j]).stem.split('.')[0] == Path(
+                                        cluster_name).stem:
+                                    try:
+                                        config.data[i].boundingbox['cluster'][j] = class_names[cluster]
+                                    except IndexError:
+                                        config.data[i].boundingbox['cluster'][j] = cluster
+                # set embedding
+                for i in range(len(encodings)):
+                    for j in range(len(config.data)):
+                        encodings_name, ending = os.path.splitext(encodings[i].path_to_image)
+                        config_name, konec = os.path.splitext(config.data[j].path_to_image)
+                        name = encodings_name
+                        for k in range(len(config.data[j].boundingbox['path'])):
+                            if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == Path(name).stem:
+                                config.data[j].boundingbox['embedding'][k] = list(encodings[i].encoding)
+
+                for i in range(len(paths)):
+                    for j in range(len(config.data)):
+                        for k in range(len(config.data[j].boundingbox['path'])):
+                            if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == \
+                                    Path(paths[i]).stem.split('.')[0]:
+                                labels[i] = config.data[j].boundingbox['cluster'][k]
+
                 results_path = os.getcwd()
-                if not os.path.exists('results'):
-                    os.mkdir('results')
-                    results_path = os.path.join(results_path, 'results')
+                if not os.path.exists('results_final'):
+                    os.mkdir('results_final')
+                    results_path = os.path.join(results_path, 'results_final')
                 else:
-                    results_path = os.path.join(results_path, 'results')
+                    results_path = os.path.join(results_path, 'results_final')
                 print(results_path)
                 for i in range(len(best_class_indices)):
                     if float(best_class_probabilities[i]) > 0.750:
@@ -172,8 +208,8 @@ def main(args):
                             copy2(str(paths[i]), new_dir)
                         except IndexError:
                             pass
-                accuracy = np.mean(np.equal(best_class_indices, labels))
-                print('Accuracy: %.3f' % accuracy)
+                # accuracy = np.mean(np.equal(best_class_indices, labels))
+                # print('Accuracy: %.3f' % accuracy)
 
 
 def split_dataset(dataset, min_nrof_images_per_class, nrof_train_images_per_class):
