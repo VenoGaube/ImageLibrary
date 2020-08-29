@@ -154,28 +154,43 @@ def main(args):
                 print('Testing classifier')
                 with open(classifier_filename_exp, 'rb') as infile:
                     (model, class_names) = pickle.load(infile)
-                config.class_names = class_names
+
                 print('Loaded classifier model from file "%s"' % classifier_filename_exp)
 
                 predictions = model.predict_proba(emb_array)
                 best_class_indices = np.argmax(predictions, axis=1)
                 best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
 
-                # set clusters
-                for cluster in range(len(clusters)):
-                    if len(clusters[cluster]) < 5:
-                        continue
-                    for data in clusters[cluster]:
-                        flag = False
-                        for i in range(len(config.data)):
-                            cluster_name, ending = os.path.splitext(data)
-                            for j in range(len(config.data[i].boundingbox['path'])):
-                                if Path(config.data[i].boundingbox['path'][j]).stem.split('.')[0] == Path(
-                                        cluster_name).stem:
-                                    try:
-                                        config.data[i].boundingbox['cluster'][j] = class_names[cluster]
-                                    except IndexError:
-                                        config.data[i].boundingbox['cluster'][j] = cluster
+                for i in config.class_names:
+                    if i not in config.cluster_names:
+                        config.cluster_names.append(i)
+
+                results_path = os.getcwd()
+                if not os.path.exists('results_final'):
+                    os.mkdir('results_final')
+                    results_path = os.path.join(results_path, 'results_final')
+                else:
+                    results_path = os.path.join(results_path, 'results_final')
+
+                for i in range(len(best_class_indices)):
+
+                    if float(best_class_probabilities[i]) > 0.750:
+                        try:
+                            new_dir = Path(results_path) / Path(str(class_names[best_class_indices[i]]))
+
+                            for j in range(len(config.data)):
+                                for k in range(len(config.data[j].boundingbox['path'])):
+                                    # path_name, ending = os.path.splitext(path)
+                                    # print(Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0])
+                                    # print(Path(paths[i]).stem)
+                                    if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == Path(paths[i]).stem:
+                                        config.data[j].boundingbox['cluster'][k] = os.path.basename(os.path.normpath(new_dir))
+
+                            pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
+                            copy2(str(paths[i]), new_dir)
+                        except IndexError:
+                            pass
+
                 # set embedding
                 for i in range(len(encodings)):
                     for j in range(len(config.data)):
@@ -183,7 +198,8 @@ def main(args):
                         config_name, konec = os.path.splitext(config.data[j].path_to_image)
                         name = encodings_name
                         for k in range(len(config.data[j].boundingbox['path'])):
-                            if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == Path(name).stem:
+                            if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == Path(
+                                    name).stem:
                                 config.data[j].boundingbox['embedding'][k] = list(encodings[i].encoding)
 
                 for i in range(len(paths)):
@@ -192,22 +208,6 @@ def main(args):
                             if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == \
                                     Path(paths[i]).stem.split('.')[0]:
                                 labels[i] = config.data[j].boundingbox['cluster'][k]
-
-                results_path = os.getcwd()
-                if not os.path.exists('results_final'):
-                    os.mkdir('results_final')
-                    results_path = os.path.join(results_path, 'results_final')
-                else:
-                    results_path = os.path.join(results_path, 'results_final')
-                print(results_path)
-                for i in range(len(best_class_indices)):
-                    if float(best_class_probabilities[i]) > 0.750:
-                        try:
-                            new_dir = Path(results_path) / Path(str(class_names[best_class_indices[i]]))
-                            pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
-                            copy2(str(paths[i]), new_dir)
-                        except IndexError:
-                            pass
                 # accuracy = np.mean(np.equal(best_class_indices, labels))
                 # print('Accuracy: %.3f' % accuracy)
 

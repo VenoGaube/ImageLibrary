@@ -5,3 +5,4 @@ data = []
 result_path = ''
 podatki = None
 class_names = []
+cluster_names = []

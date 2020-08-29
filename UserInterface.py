@@ -125,6 +125,10 @@ class OpenWindow:
             new_dir = os.path.join(str(path_train_aligned), Path(dir_name))
             main_dir = str(path_train_aligned)
 
+            clsID = int(os.path.basename(os.path.dirname(image_path)))
+            clusterName = {'clusterID': int(clsID), 'clusterName': dir_name}
+            config.class_names.append(clusterName)
+
             pathlib.Path(new_dir).mkdir(parents=True, exist_ok=True)
             try:
                 copy2(str(image_path), new_dir)
