@@ -173,7 +173,7 @@ class OpenWindow:
         counter_array = [0] * num_of_folders
 
         counter = 0
-        limit = 10
+        limit = 15
         j = 0
         i = 0
         for folder in Path(path).iterdir():
@@ -185,8 +185,7 @@ class OpenWindow:
                 # print("element = %s" % element)
                 counter_array[i] += 1
             i += 1
-        # print("counter array:")
-        # print(counter_array)
+
         for element in counter_array:
             # spremeni limit gori na tolko kolko naj bo training slik
             if counter_array[j] >= limit:
@@ -619,6 +618,8 @@ for folder in Path(config.result_path).iterdir():
     img_flag = True
     while img_flag:
         vse_slike = get_result_images(folder)
+        if len(vse_slike) < 15:
+            break
         image_path = secrets.choice(vse_slike)
 
         image = cv2.imread(str(image_path))
@@ -629,5 +630,5 @@ for folder in Path(config.result_path).iterdir():
         app = OpenWindow(root)
         root.mainloop()
 
-move_results_to_test_aligned()
+# move_results_to_test_aligned()
 results_command()

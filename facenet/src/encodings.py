@@ -166,8 +166,8 @@ def main(args):
 
             # set clusters
             for cluster in range(len(clusters)):
-                if len(clusters[cluster]) < 5:
-                    continue
+                # if len(clusters[cluster]) < 5:
+                #   continue
                 for data in clusters[cluster]:
                     flag = False
                     for i in range(len(config.data)):
@@ -201,7 +201,7 @@ def main(args):
             config.result_path = results_path
 
             for i in range(len(clusters)):
-                if len(clusters[i]) < 8:
+                if len(clusters[i]) < 0:
                     for o in range(len(clusters[i])):
                         for j in range(len(config.data)):
                             for k in range(len(config.data[j].boundingbox["path"])):
@@ -216,6 +216,7 @@ def main(args):
                             copy2(str(clusters[i][j]), new_dir)
                         except IndexError:
                             pass
+
 
 
 def split_dataset(dataset, min_nrof_images_per_class, nrof_train_images_per_class):

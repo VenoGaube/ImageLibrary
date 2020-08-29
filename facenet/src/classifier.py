@@ -180,9 +180,6 @@ def main(args):
 
                             for j in range(len(config.data)):
                                 for k in range(len(config.data[j].boundingbox['path'])):
-                                    # path_name, ending = os.path.splitext(path)
-                                    # print(Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0])
-                                    # print(Path(paths[i]).stem)
                                     if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == Path(paths[i]).stem:
                                         config.data[j].boundingbox['cluster'][k] = os.path.basename(os.path.normpath(new_dir))
 
@@ -201,15 +198,16 @@ def main(args):
                             if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == Path(
                                     name).stem:
                                 config.data[j].boundingbox['embedding'][k] = list(encodings[i].encoding)
-
+                """
                 for i in range(len(paths)):
                     for j in range(len(config.data)):
                         for k in range(len(config.data[j].boundingbox['path'])):
                             if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == \
                                     Path(paths[i]).stem.split('.')[0]:
                                 labels[i] = config.data[j].boundingbox['cluster'][k]
-                # accuracy = np.mean(np.equal(best_class_indices, labels))
-                # print('Accuracy: %.3f' % accuracy)
+                """
+                accuracy = np.mean(np.equal(best_class_indices, labels))
+                print('Accuracy: %.3f' % accuracy)
 
 
 def split_dataset(dataset, min_nrof_images_per_class, nrof_train_images_per_class):
