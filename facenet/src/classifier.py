@@ -174,7 +174,7 @@ def main(args):
 
                 for i in range(len(best_class_indices)):
 
-                    if float(best_class_probabilities[i]) > 0.750:
+                    if float(best_class_probabilities[i]) > 0.650:
                         try:
                             new_dir = Path(results_path) / Path(str(class_names[best_class_indices[i]]))
 
@@ -198,16 +198,16 @@ def main(args):
                             if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == Path(
                                     name).stem:
                                 config.data[j].boundingbox['embedding'][k] = list(encodings[i].encoding)
-                """
+
                 for i in range(len(paths)):
                     for j in range(len(config.data)):
                         for k in range(len(config.data[j].boundingbox['path'])):
                             if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == \
                                     Path(paths[i]).stem.split('.')[0]:
                                 labels[i] = config.data[j].boundingbox['cluster'][k]
-                """
-                accuracy = np.mean(np.equal(best_class_indices, labels))
-                print('Accuracy: %.3f' % accuracy)
+
+                #accuracy = np.mean(np.equal(best_class_indices, labels))
+                #print('Accuracy: %.3f' % accuracy)
 
 
 def split_dataset(dataset, min_nrof_images_per_class, nrof_train_images_per_class):

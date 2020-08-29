@@ -630,5 +630,5 @@ for folder in Path(config.result_path).iterdir():
         app = OpenWindow(root)
         root.mainloop()
 
-# move_results_to_test_aligned()
+move_results_to_test_aligned()
 results_command()
