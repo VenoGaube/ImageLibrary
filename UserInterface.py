@@ -44,7 +44,7 @@ def path_finder(path):
 
 path_test_raw = ""              # "\\facenet\\data\\images\\test_raw\\"
 path_test_aligned = ""          # "\\facenet\\data\\images\\test_aligned\\"
-path_train_aligned = ""         # "\\facenet\\data\\images\\train_aligned\\"
+path_train_aligned = ""         # os.getcwd() + "\\facenet\\data\\images\\train_aligned\\"
 base_images_path = ""           # "\\facenet\\data\\images\\"
 
 path_model = ""                 # "\\facenet\\models\\20180402-114759.pb"
@@ -285,7 +285,10 @@ def draw_bounding_boxes():
         if display_flag:
             cv2.imshow("Image", slika)
             cv2.waitKey(0)
-    cv2.destroyWindow("Image")
+    try:
+        cv2.destroyWindow("Image")
+    except cv2.error:
+        pass
 
 
 def draw_bounding_boxes_final():
@@ -328,7 +331,10 @@ def draw_bounding_boxes_final():
         if display_flag:
             cv2.imshow("Image", slika)
             cv2.waitKey(0)
-    cv2.destroyWindow("Image")
+    try:
+        cv2.destroyWindow("Image")
+    except cv2.error:
+        pass
 
 
 def check_number_of_images(path):
@@ -599,6 +605,7 @@ def move_results_to_test_aligned():
 
 
 path_finder(pathlib.PurePath(os.getcwd()))
+
 delete_create()
 vse_slike = findImages.get_images()
 call_commands()
@@ -606,8 +613,9 @@ call_commands()
 window = Tk()
 results_array = count_folders()
 file_explore()
-check_if_moved()
 reconfigure_array = count_folders()
+check_if_moved()
+
 if len(results_array) != len(reconfigure_array):
     reconfigure_config()
     reconfigure_delete_config()
@@ -618,8 +626,7 @@ for folder in Path(config.result_path).iterdir():
     img_flag = True
     while img_flag:
         vse_slike = get_result_images(folder)
-        if len(vse_slike) < 15:
-            break
+
         image_path = secrets.choice(vse_slike)
 
         image = cv2.imread(str(image_path))
