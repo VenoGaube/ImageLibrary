@@ -174,7 +174,7 @@ def main(args):
 
                 for i in range(len(best_class_indices)):
 
-                    if float(best_class_probabilities[i]) > 0.750:
+                    if float(best_class_probabilities[i]) > 0.450:
                         try:
                             new_dir = Path(results_path) / Path(str(class_names[best_class_indices[i]]))
 

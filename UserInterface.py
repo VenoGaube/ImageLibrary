@@ -125,6 +125,11 @@ class OpenWindow:
             new_dir = os.path.join(str(path_train_aligned), Path(dir_name))
             main_dir = str(path_train_aligned)
 
+            for j in range(len(config.data)):
+                for k in range(len(config.data[j].boundingbox['path'])):
+                    if Path(config.data[j].boundingbox['path'][k]).stem.split('.')[0] == Path(image_path).stem:
+                        config.data[j].boundingbox['cluster'][k] = dir_name
+
             clsID = int(os.path.basename(os.path.dirname(image_path)))
             clusterName = {'clusterID': int(clsID), 'clusterName': dir_name}
             config.class_names.append(clusterName)
