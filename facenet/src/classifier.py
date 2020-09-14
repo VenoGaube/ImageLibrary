@@ -132,8 +132,6 @@ def main(args):
             for i in range(len(paths)):
                 encodings.append(ImageEncoding(paths[i], emb_array[i]))
 
-            clusters = clustering.cluster_facial_encodings(encodings)
-
             if args.mode == 'TRAIN':
                 # Train classifier
                 print('Training classifier')

@@ -586,7 +586,7 @@ def call_commands():
     # Encoding Command
     print("\rLoading Clustering Command")
     arguments_classifier = ClassifyArguments(path_test_aligned, 'TRAIN')
-    encodings.main(arguments_classifier)
+    encodings.mSVMain(arguments_classifier)
 
     # Write to JSON file
     imageJSONData = json.dumps(config.data, indent=4, cls=ImageObjectEncoder)

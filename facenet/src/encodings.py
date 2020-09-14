@@ -26,6 +26,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from os.path import normpath, basename
+
 from sklearn.cluster import DBSCAN
 from imutils import build_montages
 
@@ -33,6 +34,7 @@ import argparse
 import pickle
 import cv2
 import pathlib
+
 import config
 import progressbar
 import tensorflow as tf
@@ -49,9 +51,9 @@ import cv2
 from sklearn.svm import SVC
 from shutil import copy2
 from pathlib import Path
-from facenet.contributed import clustering as clustering
-from facenet.contributed import cluster as cluster
 
+from facenet.contributed import clustering as clustering
+from facenet.contributed import cluster as dbscan_cluster
 
 
 class ImageObject:
@@ -84,6 +86,21 @@ class AlignArguments:
         self.output_dir = str(path_aligned_folder)
         self.image_size = 182
         self.margin = 44
+        self.random_order = True
+        self.detect_multiple_faces = True
+        self.gpu_memory_fraction = 1.0
+
+
+class HDBSCANArguments:
+    def __init__(self, path_aligned_folder, results_path, path_model):
+        self.cluster_threshold = 0.95
+        self.min_cluster_size = 15
+        self.largest_cluster_only = False
+        self.data_dir = str(path_aligned_folder)
+        self.out_dir = str(results_path)
+        self.model = str(path_model)
+        self.image_size = 160
+        self.margin = 25
         self.random_order = True
         self.detect_multiple_faces = True
         self.gpu_memory_fraction = 1.0
@@ -162,8 +179,12 @@ def main(args):
             for i in range(len(paths)):
                 encodings.append(ImageEncoding(paths[i], emb_array[i]))
 
-            clusters = clustering.cluster_facial_encodings(encodings)
-
+            #clusters = clustering.cluster_facial_encodings(encodings)
+            path_test_aligned = os.getcwd() + "\\facenet\\data\\images\\test_aligned\\gallery"
+            path_model = os.getcwd() + "\\facenet\\models\\20170512-110547.pb"
+            results_path = os.getcwd() + "\\results"
+            arguments_dbscan = HDBSCANArguments(path_test_aligned, results_path, path_model)
+            clusters = dbscan_cluster.main(arguments_dbscan)
             # set clusters
             for cluster in range(len(clusters)):
                 # if len(clusters[cluster]) < 5:
