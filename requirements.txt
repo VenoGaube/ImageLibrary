@@ -1,6 +1,6 @@
 tensorflow==1.7
 scipy==1.1.0
-numpy==1.16.1
+numpy==1.22.0
 networkx==1.11
 setuptools
 scikit-learn
